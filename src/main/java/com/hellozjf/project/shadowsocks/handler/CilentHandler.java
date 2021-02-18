@@ -36,10 +36,10 @@ public class CilentHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         // 从客户端收到的数据直接转发到目标去
-        log.info("target write {}", byteBuf.readableBytes());
+        log.debug("target write {}", byteBuf.readableBytes());
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.getBytes(0, bytes);
-        log.info("target write {}", new String(bytes, CharsetUtil.UTF_8));
+        log.debug("target write {}", new String(bytes, CharsetUtil.UTF_8));
         targetChannel.writeAndFlush(byteBuf);
     }
 }

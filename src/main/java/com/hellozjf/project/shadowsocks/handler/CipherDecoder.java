@@ -4,7 +4,6 @@ import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
@@ -17,26 +16,32 @@ import java.util.List;
  * 这个类必须有状态，因为要保存一些会话信息，使用的时候请new一个新的对象
  */
 @Slf4j
-public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
+public class CipherDecoder extends ByteToMessageDecoder {
 
     private AEADBlockCipher cipher;
-    private byte[] salt;
     private byte[] key;
     private byte[] subkey;
     private byte[] decNonce = new byte[CryptUtils.getNonceLength()];
-    private byte[] encNonce = new byte[CryptUtils.getNonceLength()];
 
-    public EncryptionEncoder(String password) {
+    public CipherDecoder(String password) {
         key = CryptUtils.getKey(password);
     }
 
-    public EncryptionEncoder(String password, byte[] salt) {
-        key = CryptUtils.getKey(password);
-        this.salt = salt;
-    }
-
+    /**
+     * 报文格式为
+     * <p>
+     * 2B   DataLen
+     * 16B  DataLenTag
+     * xxB  DATA(Payload)
+     * 16B  DataTag
+     *
+     * @param ctx
+     * @param in
+     * @param out
+     * @throws Exception
+     */
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 
         // 防御性编程
         if (ctx == null || in == null || out == null) {
@@ -44,17 +49,29 @@ public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
         }
 
         if (cipher == null) {
-            // 先写32字节盐
-            if (salt == null) {
-                salt = CryptUtils.randomBytes(CryptUtils.getSaltLength());
+            if (in.readableBytes() < CryptUtils.getSaltLength()) {
+                // 不满32字节，说明连盐都没有
+                return;
             }
-            out.writeBytes(salt);
             // todo aes-256-gcm是32字节的盐长度
+            byte[] salt = new byte[32];
+            in.readBytes(salt);
             subkey = CryptUtils.genSubkey(salt, key);
             cipher = new GCMBlockCipher(new AESEngine());
         }
 
-        // 将输入的数据进行加密
-        CryptUtils.encrypt(in, out, cipher, encNonce, subkey);
+        // 读取剩余的字节，将它们解密
+        try {
+            CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
+        } catch (Exception e) {
+            log.error("解密失败了");
+            ctx.channel().close();
+            return;
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("e = {}", cause.getMessage());
     }
 }

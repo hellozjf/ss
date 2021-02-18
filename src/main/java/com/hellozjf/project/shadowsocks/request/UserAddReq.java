@@ -3,7 +3,6 @@ package com.hellozjf.project.shadowsocks.request;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 /**
  * 添加用户的请求

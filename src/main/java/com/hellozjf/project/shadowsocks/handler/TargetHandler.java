@@ -38,10 +38,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         // 从客户端收到的数据直接转发到目标去
-        log.info("client write {}", byteBuf.readableBytes());
+        log.debug("client write {}", byteBuf.readableBytes());
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.getBytes(0, bytes);
-        log.info("client write {}", new String(bytes, CharsetUtil.UTF_8));
+        log.debug("client write {}", new String(bytes, CharsetUtil.UTF_8));
         clientHandler.writeAndFlush(byteBuf);
     }
 }

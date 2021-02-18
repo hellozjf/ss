@@ -1,8 +1,8 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import com.hellozjf.project.shadowsocks.dao.entity.User;
-import com.hellozjf.project.shadowsocks.handler.EncryptionDecoder;
-import com.hellozjf.project.shadowsocks.handler.EncryptionEncoder;
+import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
+import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
 import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
 import com.hellozjf.project.shadowsocks.handler.TargetHandler;
 import com.hellozjf.project.shadowsocks.service.NettyService;
@@ -67,8 +67,8 @@ public class NettyServiceImpl implements NettyService {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         log.debug("接入客户端，ch = {}", ch);
                         ch.pipeline()
-                                .addLast(new EncryptionEncoder(password))
-                                .addLast(new EncryptionDecoder(password))
+                                .addLast(new CipherEncoder(password))
+                                .addLast(new CipherDecoder(password))
                                 .addLast(new ShadowsocksDecoder(NettyServiceImpl.this));
                     }
                 });

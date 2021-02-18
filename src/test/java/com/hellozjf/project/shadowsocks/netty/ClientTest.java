@@ -1,8 +1,8 @@
 package com.hellozjf.project.shadowsocks.netty;
 
 import com.hellozjf.project.shadowsocks.BaseTest;
-import com.hellozjf.project.shadowsocks.handler.EncryptionDecoder;
-import com.hellozjf.project.shadowsocks.handler.EncryptionEncoder;
+import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
+import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
 import com.hellozjf.project.shadowsocks.handler.ServerHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -41,8 +41,8 @@ public class ClientTest extends BaseTest {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(new EncryptionEncoder(password))
-                                    .addLast(new EncryptionDecoder(password))
+                                    .addLast(new CipherEncoder(password))
+                                    .addLast(new CipherDecoder(password))
                                     .addLast(new ServerHandler());
                         }
                     });
