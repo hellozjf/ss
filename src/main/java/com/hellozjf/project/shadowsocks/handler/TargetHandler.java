@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,6 +38,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         // 从客户端收到的数据直接转发到目标去
+        log.info("client write {}", byteBuf.readableBytes());
+        byte[] bytes = new byte[byteBuf.readableBytes()];
+        byteBuf.getBytes(0, bytes);
+        log.info("client write {}", new String(bytes, CharsetUtil.UTF_8));
         clientHandler.writeAndFlush(byteBuf);
     }
 }

@@ -4,7 +4,6 @@ import cn.hutool.core.util.HexUtil;
 import com.hellozjf.project.shadowsocks.BaseTest;
 import com.hellozjf.project.shadowsocks.handler.EncryptionDecoder;
 import com.hellozjf.project.shadowsocks.handler.EncryptionEncoder;
-import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;

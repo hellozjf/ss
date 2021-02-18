@@ -74,6 +74,11 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
         CilentHandler clientHandler = new CilentHandler(targetChannel);
         ctx.pipeline().addLast(clientHandler);
         ctx.pipeline().remove(this);
+
+        // 把去掉ss头部的数据交给ClientHandler
+        byte[] bytes = new byte[in.readableBytes()];
+        in.readBytes(bytes);
+        out.add(Unpooled.copiedBuffer(bytes));
     }
 
     /**

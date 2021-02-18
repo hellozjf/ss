@@ -71,7 +71,7 @@ public class ClientTest extends BaseTest {
         public void run() {
 
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -79,7 +79,7 @@ public class ClientTest extends BaseTest {
             byte type = 0x03;
             String address = "www.baidu.com";
             short port = 80;
-            String content = "GET / HTTP/1.0\\r\\nHost: www.baidu.com.com\\r\\n\\r\\n";
+            String content = "GET / HTTP/1.0\r\nHost: www.baidu.com\r\n\r\n";
 
             ByteBuf byteBuf = Unpooled.buffer();
             byteBuf.writeByte(type);
