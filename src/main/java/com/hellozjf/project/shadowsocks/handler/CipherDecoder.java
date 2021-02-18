@@ -28,6 +28,12 @@ public class CipherDecoder extends ByteToMessageDecoder {
         key = CryptUtils.getKey(password);
     }
 
+    public CipherDecoder(String password, byte[] salt) {
+        key = CryptUtils.getKey(password);
+        subkey = CryptUtils.genSubkey(salt, key);
+        cipher = new GCMBlockCipher(new AESEngine());
+    }
+
     /**
      * 报文格式为
      * <p>
@@ -57,6 +63,7 @@ public class CipherDecoder extends ByteToMessageDecoder {
             // todo aes-256-gcm是32字节的盐长度
             byte[] salt = new byte[32];
             in.readBytes(salt);
+            log.debug("dec salt: {}", HexUtil.encodeHexStr(salt));
             subkey = CryptUtils.genSubkey(salt, key);
             cipher = new GCMBlockCipher(new AESEngine());
         }
@@ -64,7 +71,7 @@ public class CipherDecoder extends ByteToMessageDecoder {
         // 读取剩余的字节，将它们解密
         try {
             byte[] bytes = new byte[in.readableBytes()];
-            in.getBytes(0, bytes);
+            in.getBytes(in.readerIndex(), bytes);
             log.debug("即将解密: {}", HexUtil.encodeHexStr(bytes));
             CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
         } catch (Exception e) {

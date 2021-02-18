@@ -72,7 +72,7 @@ public class CryptUtils {
      * @return
      */
     public static void decrypt(ByteBuf in, List<Object> out, AEADCipher cipher, byte[] decNonce, byte[] subkey) throws InvalidCipherTextException {
-        byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
+        byte[] decBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
         ByteBuf decByteBuf = null;
         while (true) {
             // [2B   DataLen][16B  DataLenTag]
@@ -87,7 +87,6 @@ public class CryptUtils {
             cipher.init(false, getCipherParameters(decNonce, subkey));
             int processBytes = cipher.processBytes(decBuffer, 0, 2 + getTagLength(), decBuffer, 0);
             cipher.doFinal(decBuffer, processBytes);
-            increment(decNonce);
 
             // [DataLen字节   DATA(PAYLOAD)][16B  DataTag]
             int size = IpUtils.parseIntFromTwoBytes(decBuffer[0], decBuffer[1]);
@@ -102,6 +101,8 @@ public class CryptUtils {
                 in.resetReaderIndex();
                 break;
             }
+            increment(decNonce);
+
             in.readBytes(decBuffer, 2 + getTagLength(), wantLen);
             cipher.init(false, getCipherParameters(decNonce, subkey));
             processBytes = cipher.processBytes(decBuffer, 2 + getTagLength(), size + getTagLength(), decBuffer, 2 + getTagLength());

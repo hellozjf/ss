@@ -27,6 +27,6 @@ public interface NettyService {
      * @param port
      * @return
      */
-    Channel connectTarget(String address, int port, Channel clientHandler) throws InterruptedException;
+    Channel connectTarget(String address, int port, Channel clientHandler, long threadId) throws InterruptedException;
 
 }

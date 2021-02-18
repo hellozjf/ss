@@ -5,7 +5,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -14,13 +13,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CilentHandler extends ChannelInboundHandlerAdapter {
 
+    private long threadId;
+
     /**
      * 目标channel
      */
     private Channel targetChannel;
 
-    public CilentHandler(Channel targetChannel) {
+    public CilentHandler(Channel targetChannel, long threadId) {
         this.targetChannel = targetChannel;
+        this.threadId = threadId;
     }
 
     @Override
@@ -37,10 +39,10 @@ public class CilentHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         // 从客户端收到的数据直接转发到目标去
-        log.debug("target write {}", byteBuf.readableBytes());
+        log.debug("threadId:{} target write {}", threadId, byteBuf.readableBytes());
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.getBytes(0, bytes);
-        log.debug("data {}", HexUtil.encodeHexStr(bytes));
+        log.debug("threadId:{} data {}", threadId, HexUtil.encodeHexStr(bytes));
         targetChannel.writeAndFlush(byteBuf);
     }
 }

@@ -79,7 +79,7 @@ public class NettyServiceImpl implements NettyService {
     }
 
     @Override
-    public Channel connectTarget(String address, int port, Channel clientHandler) throws InterruptedException {
+    public Channel connectTarget(String address, int port, Channel clientHandler, long threadId) throws InterruptedException {
         EventLoopGroup group = new NioEventLoopGroup(1);
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(group)
@@ -88,9 +88,9 @@ public class NettyServiceImpl implements NettyService {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        log.debug("连接目标，address:{}, port:{}", address, port);
+                        log.debug("连接目标，threadId:{}, address:{}, port:{}, ", threadId, address, port);
                         ch.pipeline()
-                                .addLast(new TargetHandler(clientHandler));
+                                .addLast(new TargetHandler(clientHandler, threadId));
                     }
                 });
         ChannelFuture channelFuture = bootstrap.connect().sync();
