@@ -2,9 +2,12 @@ package com.hellozjf.project.shadowsocks.service.impl;
 
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.handler.EncryptionDecoder;
+import com.hellozjf.project.shadowsocks.handler.EncryptionEncoder;
 import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
+import com.hellozjf.project.shadowsocks.handler.TargetHandler;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -13,6 +16,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,13 +67,33 @@ public class NettyServiceImpl implements NettyService {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         log.debug("接入客户端，ch = {}", ch);
                         ch.pipeline()
+                                .addLast(new EncryptionEncoder(password))
                                 .addLast(new EncryptionDecoder(password))
-                                .addLast(new ShadowsocksDecoder());
+                                .addLast(new ShadowsocksDecoder(NettyServiceImpl.this));
                     }
                 });
         // 启动端口
         log.info("正在启动ss端口，port[{}]，password[{}], method[{}]", port, password, method);
         ChannelFuture channelFuture = serverBootstrap.bind().sync();
+        return channelFuture.channel();
+    }
+
+    @Override
+    public Channel connectTarget(String address, int port, Channel clientHandler) throws InterruptedException {
+        EventLoopGroup group = new NioEventLoopGroup(1);
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(group)
+                .channel(NioSocketChannel.class)
+                .remoteAddress(address, port)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        log.debug("连接目标，address:{}, port:{}", address, port);
+                        ch.pipeline()
+                                .addLast(new TargetHandler(clientHandler));
+                    }
+                });
+        ChannelFuture channelFuture = bootstrap.connect().sync();
         return channelFuture.channel();
     }
 }

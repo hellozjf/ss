@@ -1,7 +1,10 @@
 package com.hellozjf.project.shadowsocks.handler;
 
+import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.util.IpUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.CharsetUtil;
@@ -33,15 +36,44 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
      */
     private int port;
 
+    /**
+     * nettyService，用于连接目标服务器
+     */
+    private NettyService nettyService;
+
+    /**
+     * 目标channel
+     */
+    private Channel targetChannel;
+
+    public ShadowsocksDecoder(NettyService nettyService) {
+        this.nettyService = nettyService;
+    }
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (!StringUtils.hasLength(address)) {
-            if (!initAddress(in)) {
-                return;
-            }
+
+        // 防御性编程
+        if (ctx == null || in == null || out == null) {
+            return;
+        }
+
+        if (StringUtils.hasLength(address)) {
+            // 这个decoder只会出现一次，怎么可能address会有值呢，这是异常情况
+            return;
+        }
+
+        if (!initAddress(in)) {
+            return;
         }
         // 至此，说明地址已经解析出来了，打印下看看效果
         log.info("thread={} type={}, address={}, port={}", Thread.currentThread(), type, address, port);
+        // 解析出地址了，这里进行网络连接
+        targetChannel = nettyService.connectTarget(address, port, ctx.channel());
+        // 创建ClinetHandler，加到pipeline最后面，同时把自己移除掉
+        CilentHandler clientHandler = new CilentHandler(targetChannel);
+        ctx.pipeline().addLast(clientHandler);
+        ctx.pipeline().remove(this);
     }
 
     /**
@@ -102,9 +134,9 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
                 return false;
         }
         // 3. 读取端口
-        int p1 = (in.readByte() & 0xff);
-        int p2 = (in.readByte() & 0xff);
-        port = (p1 << 8) + p2;
+        byte b1 = in.readByte();
+        byte b2 = in.readByte();
+        port = IpUtils.parseIntFromTwoBytes(b1, b2);
         return true;
     }
 }

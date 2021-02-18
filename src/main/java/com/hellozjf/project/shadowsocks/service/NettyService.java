@@ -20,4 +20,13 @@ public interface NettyService {
      * @return
      */
     Channel createPort(int port, String password, String method) throws InterruptedException;
+
+    /**
+     * 连接目标服务器
+     * @param address
+     * @param port
+     * @return
+     */
+    Channel connectTarget(String address, int port, Channel clientHandler) throws InterruptedException;
+
 }

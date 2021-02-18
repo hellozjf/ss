@@ -33,4 +33,16 @@ public class IpUtils {
         BigInteger ipv6 = new BigInteger(bytes);
         return NetUtil.bigIntegerToIPv6(ipv6);
     }
+
+    /**
+     * 从两个字节中获取int类型的长度
+     * @param b1
+     * @param b2
+     * @return
+     */
+    public static int parseIntFromTwoBytes(byte b1, byte b2) {
+        int i1 = (b1 & 0xff);
+        int i2 = (b2 & 0xff);
+        return (i1 << 8) + i2;
+    }
 }
