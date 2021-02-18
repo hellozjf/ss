@@ -87,5 +87,10 @@ public class CryptTest extends BaseTest {
             System.arraycopy(bytes, 2 + size + 2, info, 0, bytes.length - 2 - size - 2);
             log.info("{}", HexUtil.encodeHexStr(info));
         }
+
+        ByteBuf buf3 = channel.readInbound();
+        bytes = new byte[buf3.readableBytes()];
+        buf3.readBytes(bytes);
+        log.info("{}", HexUtil.encodeHexStr(bytes));
     }
 }

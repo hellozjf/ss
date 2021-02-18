@@ -73,6 +73,7 @@ public class CryptUtils {
      */
     public static void decrypt(ByteBuf in, List<Object> out, AEADCipher cipher, byte[] decNonce, byte[] subkey) throws InvalidCipherTextException {
         byte[] decBuffer = new byte[PAYLOAD_SIZE_MASK + getTagLength()];
+        ByteBuf decByteBuf = null;
         while (true) {
             // [2B   DataLen][16B  DataLenTag]
             int wantLen = 2 + getTagLength();
@@ -80,7 +81,7 @@ public class CryptUtils {
             in.markReaderIndex();
             if (in.readableBytes() < wantLen) {
                 // 不够处理了，返回就好
-                return;
+                break;
             }
             in.readBytes(decBuffer, 0, wantLen);
             cipher.init(false, getCipherParameters(decNonce, subkey));
@@ -93,13 +94,13 @@ public class CryptUtils {
             if (size == 0) {
                 // todo exists?
                 log.error("size == 0");
-                return;
+                break;
             }
             wantLen = size + getTagLength();
             if (in.readableBytes() < wantLen) {
                 // 可读字节数不够，回滚读指针
                 in.resetReaderIndex();
-                return;
+                break;
             }
             in.readBytes(decBuffer, 2 + getTagLength(), wantLen);
             cipher.init(false, getCipherParameters(decNonce, subkey));
@@ -108,7 +109,12 @@ public class CryptUtils {
             increment(decNonce);
 
             // 只需要中间的DATA数据
-            ByteBuf decByteBuf = Unpooled.copiedBuffer(decBuffer, 2 + getTagLength(), size);
+            if (decByteBuf == null) {
+                decByteBuf = Unpooled.buffer();
+            }
+            decByteBuf.writeBytes(decBuffer, 2 + getTagLength(), size);
+        }
+        if (decByteBuf != null) {
             out.add(decByteBuf);
         }
     }

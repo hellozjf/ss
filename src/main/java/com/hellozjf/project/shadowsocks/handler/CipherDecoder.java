@@ -64,8 +64,8 @@ public class CipherDecoder extends ByteToMessageDecoder {
         try {
             CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
         } catch (Exception e) {
-            log.error("解密失败了");
-            ctx.channel().close();
+            log.error("解密失败了: {}", e.getMessage());
+            ctx.channel().close().sync();
             return;
         }
     }
