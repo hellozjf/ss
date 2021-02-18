@@ -63,6 +63,19 @@ public class CryptTest extends BaseTest {
     }
 
     @Test
+    public void encode() {
+        ByteBuf byteBuf = Unpooled.copiedBuffer("helloworld".getBytes(CharsetUtil.UTF_8));
+        EmbeddedChannel channel = new EmbeddedChannel(
+                new CipherEncoder("123456")
+        );
+        channel.writeOutbound(byteBuf);
+        ByteBuf out = channel.readOutbound();
+        byte[] bytes = new byte[out.readableBytes()];
+        out.readBytes(bytes);
+        log.info("{}", HexUtil.encodeHexStr(bytes));
+    }
+
+    @Test
     public void decode() throws UnsupportedEncodingException {
         ByteBuf buf = Unpooled.buffer();
         String hexStr = "bd7a7ea92d479c25e6720161835156bf3203787d491b1362a2f8ba19faa023af89f69518cf05d7dddf7ece9ce6848db55bc9760b0e75aaa9ecd02b3183453455f564fc34abd000beeaf388010d74c83ff34496a031c960013e738ace0ccaa7a818c552ef0ccc2a00eb034b4d652f924dd46c75ae1748870b685528123ac64b961ae13d22ae7cf6877eaaa748225c7e42860fc7fcb635f3ccb8a0f8898c887b5fdc1b652a9f82ffb3b2781c2c4761a27aec14ac920520c8a97e5f8fb1b43f1590003ff813f7108ae35ec74485e0db0dbb5d275bf1ff364721b6c8fca17f648f2d5b147a82c482cbc79ca9ee182f70c013af6b9ed7e5a742da7748771086516644c63017aab6a0593379d2da1e597196776a8f5783da6df5a78ef07e4d155dafff26f50582a08a55bd2654b5bf006111f38b763fcf8463d5d54f9b6fa02c21341e2b49d09ca22bb43f1315d4c2ddace2bfc9a7fe67e9852089870ce91d0a41cb42d6ef2cecad59638cf7d69f03ef5838de2fdfc9ada080a58223c28829c2e02cb256f110cb098d65ed098cf0a8f3b735ed449ae7cc9847ca7f3d6c50b1669567075b0fef423724e94a6704ac5306d29a4ee44f31d6064cfe15bd7f5ff258010fde5640df03039ce0ac8f910b7bc9bedca31f06edb04fa1c88ba739c73def9580e5c04e97172a254cbac9a2e4bc08247b86847be89ace2351de02a9dbd5f33c3bf526e7ddc6a1318df4c313ff3af7b43cf53f7b00fc43f901978c311a44c50a4ef7a99bd86c8281d9f17024e5724415e04fd978300c05be5e1b52bc2f52ef3d1e013f3b9d9734b7b4584921279657019fb8a934602dd3742aa695340c5b0a86c476fa5f6459e2a3981a4d8cb0e98da18647be55540b0a022b23fda7";

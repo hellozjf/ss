@@ -1,5 +1,6 @@
 package com.hellozjf.project.shadowsocks.handler;
 
+import cn.hutool.core.util.HexUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,7 +40,7 @@ public class CilentHandler extends ChannelInboundHandlerAdapter {
         log.debug("target write {}", byteBuf.readableBytes());
         byte[] bytes = new byte[byteBuf.readableBytes()];
         byteBuf.getBytes(0, bytes);
-        log.debug("target write {}", new String(bytes, CharsetUtil.UTF_8));
+        log.debug("data {}", HexUtil.encodeHexStr(bytes));
         targetChannel.writeAndFlush(byteBuf);
     }
 }

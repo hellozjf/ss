@@ -1,5 +1,6 @@
 package com.hellozjf.project.shadowsocks.handler;
 
+import cn.hutool.core.util.HexUtil;
 import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -62,11 +63,14 @@ public class CipherDecoder extends ByteToMessageDecoder {
 
         // 读取剩余的字节，将它们解密
         try {
+            byte[] bytes = new byte[in.readableBytes()];
+            in.getBytes(0, bytes);
+            log.debug("即将解密: {}", HexUtil.encodeHexStr(bytes));
             CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
         } catch (Exception e) {
             log.error("解密失败了: {}", e.getMessage());
+            in.resetReaderIndex();
             ctx.channel().close().sync();
-            return;
         }
     }
 
