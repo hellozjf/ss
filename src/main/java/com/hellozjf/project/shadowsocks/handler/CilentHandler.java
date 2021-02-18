@@ -23,6 +23,8 @@ public class CilentHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
+        // 防御性编程
         if (ctx == null || msg == null || !(msg instanceof ByteBuf)) {
             return;
         }
