@@ -20,6 +20,7 @@ import java.util.List;
 public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
 
     private AEADBlockCipher cipher;
+    private byte[] salt;
     private byte[] key;
     private byte[] subkey;
     private byte[] decNonce = new byte[CryptUtils.getNonceLength()];
@@ -27,6 +28,11 @@ public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
 
     public EncryptionEncoder(String password) {
         key = CryptUtils.getKey(password);
+    }
+
+    public EncryptionEncoder(String password, byte[] salt) {
+        key = CryptUtils.getKey(password);
+        this.salt = salt;
     }
 
     @Override
@@ -39,7 +45,9 @@ public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
 
         if (cipher == null) {
             // 先写32字节盐
-            byte[] salt = CryptUtils.randomBytes(CryptUtils.getSaltLength());
+            if (salt == null) {
+                salt = CryptUtils.randomBytes(CryptUtils.getSaltLength());
+            }
             out.writeBytes(salt);
             // todo aes-256-gcm是32字节的盐长度
             subkey = CryptUtils.genSubkey(salt, key);
