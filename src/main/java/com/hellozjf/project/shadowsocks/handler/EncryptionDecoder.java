@@ -61,6 +61,12 @@ public class EncryptionDecoder extends ByteToMessageDecoder {
         }
 
         // 读取剩余的字节，将它们解密
-        CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
+        try {
+            CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
+        } catch (Exception e) {
+            log.error("解密失败了");
+            ctx.channel().close();
+            return;
+        }
     }
 }

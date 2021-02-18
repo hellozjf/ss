@@ -77,9 +77,9 @@ public class ClientTest extends BaseTest {
             }
 
             byte type = 0x03;
-            String address = "www.baidu.com";
+            String address = "www.google.com";
             short port = 80;
-            String content = "GET / HTTP/1.0\r\nHost: www.baidu.com\r\n\r\n";
+            String content = "GET / HTTP/1.0\r\nHost: www.google.com\r\n\r\n";
 
             ByteBuf byteBuf = Unpooled.buffer();
             byteBuf.writeByte(type);
