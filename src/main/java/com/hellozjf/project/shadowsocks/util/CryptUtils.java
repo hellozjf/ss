@@ -15,6 +15,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 
@@ -112,19 +113,6 @@ public class CryptUtils {
         }
     }
 
-    private static int getTagLength() {
-        return 16;
-    }
-
-    private static CipherParameters getCipherParameters(byte[] rawNonce, byte[] subkey) {
-        byte[] nonce = Arrays.copyOf(rawNonce, getNonceLength());
-        return new AEADParameters(
-                new KeyParameter(subkey),
-                getTagLength() * 8,
-                nonce
-        );
-    }
-
     public static int getNonceLength() {
         return 12;
     }
@@ -168,6 +156,16 @@ public class CryptUtils {
         return key;
     }
 
+    public static int getSaltLength() {
+        return 32;
+    }
+
+    public static byte[] randomBytes(int size) {
+        byte[] bytes = new byte[size];
+        new SecureRandom().nextBytes(bytes);
+        return bytes;
+    }
+
     private static void increment(byte[] nonce) {
         for (int i = 0; i < nonce.length; i++) {
             ++nonce[i];
@@ -175,5 +173,18 @@ public class CryptUtils {
                 break;
             }
         }
+    }
+
+    private static int getTagLength() {
+        return 16;
+    }
+
+    private static CipherParameters getCipherParameters(byte[] rawNonce, byte[] subkey) {
+        byte[] nonce = Arrays.copyOf(rawNonce, getNonceLength());
+        return new AEADParameters(
+                new KeyParameter(subkey),
+                getTagLength() * 8,
+                nonce
+        );
     }
 }

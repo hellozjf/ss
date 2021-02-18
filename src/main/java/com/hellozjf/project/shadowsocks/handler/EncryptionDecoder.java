@@ -1,27 +1,14 @@
 package com.hellozjf.project.shadowsocks.handler;
 
 import com.hellozjf.project.shadowsocks.util.CryptUtils;
-import com.hellozjf.project.shadowsocks.util.IpUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.params.AEADParameters;
-import org.bouncycastle.crypto.params.HKDFParameters;
-import org.bouncycastle.crypto.params.KeyParameter;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,7 +49,7 @@ public class EncryptionDecoder extends ByteToMessageDecoder {
         }
 
         if (cipher == null) {
-            if (in.readableBytes() < 32) {
+            if (in.readableBytes() < CryptUtils.getSaltLength()) {
                 // 不满32字节，说明连盐都没有
                 return;
             }

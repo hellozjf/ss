@@ -38,13 +38,10 @@ public class EncryptionEncoder extends MessageToByteEncoder<ByteBuf> {
         }
 
         if (cipher == null) {
-            if (in.readableBytes() < 32) {
-                // 不满32字节，说明连盐都没有
-                return;
-            }
+            // 先写32字节盐
+            byte[] salt = CryptUtils.randomBytes(CryptUtils.getSaltLength());
+            out.writeBytes(salt);
             // todo aes-256-gcm是32字节的盐长度
-            byte[] salt = new byte[32];
-            in.readBytes(salt);
             subkey = CryptUtils.genSubkey(salt, key);
             cipher = new GCMBlockCipher(new AESEngine());
         }
