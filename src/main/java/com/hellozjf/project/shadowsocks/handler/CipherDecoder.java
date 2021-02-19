@@ -20,17 +20,19 @@ import java.util.List;
 @Slf4j
 public class CipherDecoder extends ByteToMessageDecoder {
 
+    private long threadId;
     private AEADBlockCipher cipher;
     private byte[] key;
     private CryptService cryptService;
     private byte[] subkey;
     private byte[] nonce;
 
-    public CipherDecoder(byte[] key) {
-        this(key, null);
+    public CipherDecoder(long threadId, byte[] key) {
+        this(threadId, key, null);
     }
 
-    public CipherDecoder(byte[] key, byte[] salt) {
+    public CipherDecoder(long threadId, byte[] key, byte[] salt) {
+        this.threadId = threadId;
         this.cipher = new GCMBlockCipher(new AESEngine());
         this.key = key;
         this.cryptService = SpringUtil.getBean(CryptService.class);
@@ -68,18 +70,28 @@ public class CipherDecoder extends ByteToMessageDecoder {
             }
             byte[] salt = new byte[cryptService.getSaltLength()];
             in.readBytes(salt);
-            log.debug("解密的盐: {}", HexUtil.encodeHexStr(salt));
+            log.debug("threadId:{} 解密的盐: {}", threadId, HexUtil.encodeHexStr(salt));
             subkey = cryptService.genSubkey(salt, key);
         }
 
         // 读取剩余的字节，将它们解密
         try {
-            byte[] bytes = new byte[in.readableBytes()];
-            in.getBytes(in.readerIndex(), bytes);
-            log.debug("即将解密: {}", HexUtil.encodeHexStr(bytes));
+            if (log.isDebugEnabled()) {
+                byte[] bytes = new byte[in.readableBytes()];
+                in.getBytes(in.readerIndex(), bytes);
+                log.debug("threadId:{} 即将解密: {}", threadId, HexUtil.encodeHexStr(bytes));
+            }
             cryptService.decrypt(in, out, cipher, nonce, subkey);
+            if (log.isDebugEnabled()) {
+                for (Object o : out) {
+                    ByteBuf byteBuf = (ByteBuf) o;
+                    byte[] bytes = new byte[byteBuf.readableBytes()];
+                    byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+                    log.debug("threadId:{} 解密后数据: {}", threadId, HexUtil.encodeHexStr(bytes));
+                }
+            }
         } catch (Exception e) {
-            log.error("解密失败了: {}", e.getMessage());
+            log.error("threadId:{} 解密失败了: {}", threadId, e.getMessage());
             in.resetReaderIndex();
             ctx.channel().close().sync();
         }
@@ -87,6 +99,6 @@ public class CipherDecoder extends ByteToMessageDecoder {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("e = {}", cause.getMessage());
+        log.error("threadId:{} e = {}", threadId, cause.getMessage());
     }
 }

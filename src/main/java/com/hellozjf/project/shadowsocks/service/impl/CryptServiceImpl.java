@@ -68,7 +68,6 @@ public class CryptServiceImpl implements CryptService {
     @Override
     public void decrypt(ByteBuf in, List<Object> out, AEADCipher cipher, byte[] decNonce, byte[] subkey) throws InvalidCipherTextException {
         byte[] decBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
-        ByteBuf decByteBuf = null;
         while (true) {
             // [2B   DataLen][16B  DataLenTag]
             int wantLen = 2 + getTagLength();
@@ -105,12 +104,7 @@ public class CryptServiceImpl implements CryptService {
             increment(decNonce);
 
             // 只需要中间的DATA数据
-            if (decByteBuf == null) {
-                decByteBuf = Unpooled.buffer();
-            }
-            decByteBuf.writeBytes(decBuffer, 2 + getTagLength(), size);
-        }
-        if (decByteBuf != null) {
+            ByteBuf decByteBuf = Unpooled.copiedBuffer(decBuffer, 2 + getTagLength(), size);
             out.add(decByteBuf);
         }
     }

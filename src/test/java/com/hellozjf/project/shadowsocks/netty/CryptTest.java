@@ -35,8 +35,8 @@ public class CryptTest extends BaseTest {
         String password = "123456";
         byte[] key = cryptService.getKey(password);
         EmbeddedChannel embeddedChannel = new EmbeddedChannel(
-                new CipherEncoder(key, getSalt()),
-                new CipherDecoder(key)
+                new CipherEncoder(-1, key, getSalt()),
+                new CipherDecoder(-1, key)
         );
 
         ByteBuf writeOutBuf = Unpooled.buffer();
@@ -80,7 +80,7 @@ public class CryptTest extends BaseTest {
         ByteBuf byteBuf = Unpooled.copiedBuffer("helloworld".getBytes(CharsetUtil.UTF_8));
         byte[] salt = HexUtil.decodeHex("3889bbc3973285bfcebb80ec8c64d0433a1adea4154ee95d2ab2a357fe591a96");
         EmbeddedChannel channel = new EmbeddedChannel(
-                new CipherEncoder(key, salt)
+                new CipherEncoder(-1, key, salt)
         );
         channel.writeOutbound(byteBuf);
         ByteBuf out = channel.readOutbound();
@@ -109,7 +109,7 @@ public class CryptTest extends BaseTest {
         String password = "123456";
         byte[] key = cryptService.getKey(password);
         EmbeddedChannel channel = new EmbeddedChannel(
-                new CipherDecoder(key)
+                new CipherDecoder(-1, key)
         );
         channel.writeInbound(b1);
         ByteBuf r1 = channel.readInbound();

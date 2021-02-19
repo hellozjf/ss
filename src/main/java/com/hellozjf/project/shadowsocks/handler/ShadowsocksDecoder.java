@@ -1,5 +1,6 @@
 package com.hellozjf.project.shadowsocks.handler;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.util.IpUtils;
 import io.netty.buffer.ByteBuf;
@@ -46,8 +47,14 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
      */
     private Channel targetChannel;
 
-    public ShadowsocksDecoder(NettyService nettyService) {
-        this.nettyService = nettyService;
+    /**
+     * 线程ID，便于调试
+     */
+    private long threadId;
+
+    public ShadowsocksDecoder(long threadId) {
+        this.nettyService = SpringUtil.getBean(NettyService.class);
+        this.threadId = threadId;
     }
 
     @Override
@@ -67,14 +74,13 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
             return;
         }
         // 至此，说明地址已经解析出来了，打印下看看效果
-        long threadId = Thread.currentThread().getId();
         log.info("threadId:{} type:{}, address:{}, port:{}", threadId, type, address, port);
         // 解析出地址了，这里进行网络连接
         try {
             targetChannel = nettyService.connectTarget(address, port, ctx.channel(), threadId);
         } catch (Exception e) {
             // 说明连接不上目标服务器，那就不管了，关闭channel拉倒
-            log.error("不能连接：{}:{}", address, port);
+            log.error("threadId: {} 不能连接：{}:{}", threadId, address, port);
             ctx.channel().close().sync();
             return;
         }
@@ -145,7 +151,7 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
                 address = IpUtils.parseIpv6(ipv6);
                 break;
             default:
-                log.error("未知类型{}", type);
+                log.error("threadId:{} 未知类型{}", threadId, type);
                 return false;
         }
         // 3. 读取端口

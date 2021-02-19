@@ -41,6 +41,7 @@ public class NettyServiceImpl implements NettyService {
     @Qualifier("md5MessageDigest")
     private MessageDigest md5MessageDigest;
 
+    @Autowired
     private CryptService cryptService;
 
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
@@ -75,11 +76,12 @@ public class NettyServiceImpl implements NettyService {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        log.debug("接入客户端，ch = {}", ch);
+                        long threadId = Thread.currentThread().getId();
+                        log.debug("threadId:{} 接入客户端，ch = {}", threadId, ch);
                         ch.pipeline()
-                                .addLast(new CipherEncoder(key))
-                                .addLast(new CipherDecoder(key))
-                                .addLast(new ShadowsocksDecoder(NettyServiceImpl.this));
+                                .addLast(new CipherEncoder(threadId, key))
+                                .addLast(new CipherDecoder(threadId, key))
+                                .addLast(new ShadowsocksDecoder(threadId));
                     }
                 });
         // 启动端口
@@ -98,7 +100,7 @@ public class NettyServiceImpl implements NettyService {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        log.debug("连接目标，threadId:{}, address:{}, port:{}, ", threadId, address, port);
+                        log.debug("threadId:{} 连接目标 address:{}, port:{}, ", threadId, address, port);
                         ch.pipeline()
                                 .addLast(new TargetHandler(clientHandler, threadId));
                     }

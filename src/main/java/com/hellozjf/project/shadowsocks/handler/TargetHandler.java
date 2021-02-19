@@ -38,14 +38,17 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
 
         ByteBuf byteBuf = (ByteBuf) msg;
         if (clientHandler == null) {
-            log.error("client未连接");
+            log.error("threadId:{} client未连接", threadId);
             return;
         }
+
+        if (log.isDebugEnabled()) {
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.getBytes(0, bytes);
+            log.debug("threadId:{} client write {} data {}", threadId, byteBuf.readableBytes(), HexUtil.encodeHexStr(bytes));
+        }
+
         // 从客户端收到的数据直接转发到目标去
-        log.debug("threadId:{} client write {}", threadId, byteBuf.readableBytes());
-        byte[] bytes = new byte[byteBuf.readableBytes()];
-        byteBuf.getBytes(0, bytes);
-        log.debug("threadId:{} data {}", threadId, HexUtil.encodeHexStr(bytes));
         clientHandler.writeAndFlush(byteBuf);
     }
 }

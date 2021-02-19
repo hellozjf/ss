@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.modes.AEADCipher;
 
-import java.security.MessageDigest;
 import java.util.List;
 
 public interface CryptService {

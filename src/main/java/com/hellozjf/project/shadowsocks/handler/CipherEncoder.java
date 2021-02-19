@@ -1,5 +1,6 @@
 package com.hellozjf.project.shadowsocks.handler;
 
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.hellozjf.project.shadowsocks.service.CryptService;
 import io.netty.buffer.ByteBuf;
@@ -17,6 +18,7 @@ import org.bouncycastle.crypto.modes.GCMBlockCipher;
 @Slf4j
 public class CipherEncoder extends MessageToByteEncoder<ByteBuf> {
 
+    private long threadId;
     private AEADBlockCipher cipher;
     private byte[] key;
     private CryptService cryptService;
@@ -24,11 +26,12 @@ public class CipherEncoder extends MessageToByteEncoder<ByteBuf> {
     private byte[] salt;
     private byte[] subkey;
 
-    public CipherEncoder(byte[] key) {
-        this(key, null);
+    public CipherEncoder(long threadId, byte[] key) {
+        this(threadId, key, null);
     }
 
-    public CipherEncoder(byte[] key, byte[] salt) {
+    public CipherEncoder(long threadId, byte[] key, byte[] salt) {
+        this.threadId = threadId;
         this.cipher = new GCMBlockCipher(new AESEngine());
         this.key = key;
         this.cryptService = SpringUtil.getBean(CryptService.class);
@@ -47,12 +50,22 @@ public class CipherEncoder extends MessageToByteEncoder<ByteBuf> {
         if (salt == null) {
             salt = cryptService.randomBytes(cryptService.getSaltLength());
         }
-        out.writeBytes(salt);
         if (subkey == null) {
+            out.writeBytes(salt);
             subkey = cryptService.genSubkey(salt, key);
         }
 
+        if (log.isDebugEnabled()) {
+            byte[] bytes = new byte[in.readableBytes()];
+            in.getBytes(in.readerIndex(), bytes);
+            log.debug("threadId:{} 即将加密: {}", threadId, HexUtil.encodeHexStr(bytes));
+        }
         // 将输入的数据进行加密
         cryptService.encrypt(in, out, cipher, nonce, subkey);
+        if (log.isDebugEnabled()) {
+            byte[] bytes = new byte[out.readableBytes()];
+            out.getBytes(out.readerIndex(), bytes);
+            log.debug("threadId:{} 加密后的数据: {}", threadId, HexUtil.encodeHexStr(bytes));
+        }
     }
 }

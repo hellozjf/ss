@@ -53,8 +53,8 @@ public class ClientTest extends BaseTest {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(new CipherEncoder(key))
-                                    .addLast(new CipherDecoder(key))
+                                    .addLast(new CipherEncoder(-1, key))
+                                    .addLast(new CipherDecoder(-1, key))
                                     .addLast(new ServerHandler());
                         }
                     });

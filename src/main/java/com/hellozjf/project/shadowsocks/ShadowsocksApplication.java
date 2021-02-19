@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 @MapperScan("com.hellozjf.project.shadowsocks.dao.mapper")
-@ComponentScan(basePackages={"cn.hutool.extra.spring"})
 @Import(cn.hutool.extra.spring.SpringUtil.class)
 public class ShadowsocksApplication {
 
