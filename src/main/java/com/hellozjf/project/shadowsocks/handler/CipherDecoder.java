@@ -3,6 +3,7 @@ package com.hellozjf.project.shadowsocks.handler;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.hellozjf.project.shadowsocks.service.CryptService;
+import com.hellozjf.project.shadowsocks.util.DebugUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -74,22 +75,11 @@ public class CipherDecoder extends ByteToMessageDecoder {
             subkey = cryptService.genSubkey(salt, key);
         }
 
-        // 读取剩余的字节，将它们解密
         try {
-            if (log.isDebugEnabled()) {
-                byte[] bytes = new byte[in.readableBytes()];
-                in.getBytes(in.readerIndex(), bytes);
-                log.debug("threadId:{} 即将解密: {}", threadId, HexUtil.encodeHexStr(bytes));
-            }
+            DebugUtils.printByteBufInfo(threadId, in, "解密前");
+            // 读取剩余的字节，将它们解密
             cryptService.decrypt(in, out, cipher, nonce, subkey);
-            if (log.isDebugEnabled()) {
-                for (Object o : out) {
-                    ByteBuf byteBuf = (ByteBuf) o;
-                    byte[] bytes = new byte[byteBuf.readableBytes()];
-                    byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-                    log.debug("threadId:{} 解密后数据: {}", threadId, HexUtil.encodeHexStr(bytes));
-                }
-            }
+            DebugUtils.printByteBufInfoList(threadId, out, "解密后");
         } catch (Exception e) {
             log.error("threadId:{} 解密失败了: {}", threadId, e.getMessage());
             in.resetReaderIndex();

@@ -3,6 +3,7 @@ package com.hellozjf.project.shadowsocks.handler;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.hellozjf.project.shadowsocks.service.CryptService;
+import com.hellozjf.project.shadowsocks.util.DebugUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -55,17 +56,9 @@ public class CipherEncoder extends MessageToByteEncoder<ByteBuf> {
             subkey = cryptService.genSubkey(salt, key);
         }
 
-        if (log.isDebugEnabled()) {
-            byte[] bytes = new byte[in.readableBytes()];
-            in.getBytes(in.readerIndex(), bytes);
-            log.debug("threadId:{} 即将加密: {}", threadId, HexUtil.encodeHexStr(bytes));
-        }
+        DebugUtils.printByteBufInfo(threadId, in, "加密前");
         // 将输入的数据进行加密
         cryptService.encrypt(in, out, cipher, nonce, subkey);
-        if (log.isDebugEnabled()) {
-            byte[] bytes = new byte[out.readableBytes()];
-            out.getBytes(out.readerIndex(), bytes);
-            log.debug("threadId:{} 加密后的数据: {}", threadId, HexUtil.encodeHexStr(bytes));
-        }
+        DebugUtils.printByteBufInfo(threadId, out, "加密后");
     }
 }
