@@ -4,6 +4,7 @@ import com.hellozjf.project.shadowsocks.BaseTest;
 import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
 import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
 import com.hellozjf.project.shadowsocks.handler.ServerHandler;
+import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,12 +18,19 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.net.InetSocketAddress;
+import java.security.MessageDigest;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ClientTest extends BaseTest {
+
+    @Autowired
+    @Qualifier("md5MessageDigest")
+    private MessageDigest md5MessageDigest;
 
     @Test
     public void connectTest() throws InterruptedException {
@@ -31,6 +39,7 @@ public class ClientTest extends BaseTest {
         String password = "123456";
         String method = "aes-256-gcm";
 
+        byte[] key = CryptUtils.getKey(password, md5MessageDigest);
         EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -41,8 +50,8 @@ public class ClientTest extends BaseTest {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(new CipherEncoder(password))
-                                    .addLast(new CipherDecoder(password))
+                                    .addLast(new CipherEncoder(key))
+                                    .addLast(new CipherDecoder(key))
                                     .addLast(new ServerHandler());
                         }
                     });

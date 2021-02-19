@@ -14,7 +14,6 @@ import org.bouncycastle.crypto.params.HKDFParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
@@ -133,28 +132,21 @@ public class CryptUtils {
         return okm;
     }
 
-    public static byte[] getKey(String password) {
-        MessageDigest messageDigest = null;
+    public static byte[] getKey(String password, MessageDigest md5MessageDigest) {
         // todo aes-256-gcm是32字节长度
         byte[] key = new byte[32];
-        byte[] passwordBytes = null;
-        try {
-            messageDigest = MessageDigest.getInstance("MD5");
-            passwordBytes = password.getBytes(CharsetUtil.UTF_8);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("e = {}", e.getMessage());
-        }
+        byte[] passwordBytes = password.getBytes(CharsetUtil.UTF_8);
 
         byte[] hash = null;
         byte[] temp = null;
         for (int i = 0; i < key.length; ) {
             if (i == 0) {
-                hash = messageDigest.digest(passwordBytes);
+                hash = md5MessageDigest.digest(passwordBytes);
                 temp = new byte[hash.length + passwordBytes.length];
             } else {
                 System.arraycopy(hash, 0, temp, 0, hash.length);
                 System.arraycopy(passwordBytes, 0, temp, hash.length, passwordBytes.length);
-                hash = messageDigest.digest(temp);
+                hash = md5MessageDigest.digest(temp);
             }
             System.arraycopy(hash, 0, key, i, hash.length);
             i += hash.length;

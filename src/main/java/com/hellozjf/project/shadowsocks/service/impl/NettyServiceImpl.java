@@ -7,6 +7,7 @@ import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
 import com.hellozjf.project.shadowsocks.handler.TargetHandler;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
+import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -19,10 +20,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.net.InetSocketAddress;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +36,10 @@ public class NettyServiceImpl implements NettyService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    @Qualifier("md5MessageDigest")
+    private MessageDigest md5MessageDigest;
 
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
 
@@ -56,6 +63,7 @@ public class NettyServiceImpl implements NettyService {
 
     @Override
     public Channel createPort(int port, String password, String method) throws InterruptedException {
+        byte[] key = CryptUtils.getKey(password, md5MessageDigest);
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(16);
         ServerBootstrap serverBootstrap = new ServerBootstrap();
@@ -67,8 +75,8 @@ public class NettyServiceImpl implements NettyService {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         log.debug("接入客户端，ch = {}", ch);
                         ch.pipeline()
-                                .addLast(new CipherEncoder(password))
-                                .addLast(new CipherDecoder(password))
+                                .addLast(new CipherEncoder(key))
+                                .addLast(new CipherDecoder(key))
                                 .addLast(new ShadowsocksDecoder(NettyServiceImpl.this));
                     }
                 });

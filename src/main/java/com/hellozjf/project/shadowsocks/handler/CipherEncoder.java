@@ -10,6 +10,7 @@ import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 
+import java.security.MessageDigest;
 import java.util.List;
 
 /**
@@ -25,13 +26,14 @@ public class CipherEncoder extends MessageToByteEncoder<ByteBuf> {
     private byte[] subkey;
     private byte[] decNonce = new byte[CryptUtils.getNonceLength()];
     private byte[] encNonce = new byte[CryptUtils.getNonceLength()];
+    private MessageDigest md5MessageDigest;
 
-    public CipherEncoder(String password) {
-        key = CryptUtils.getKey(password);
+    public CipherEncoder(byte[] key) {
+        this.key = key;
     }
 
-    public CipherEncoder(String password, byte[] salt) {
-        key = CryptUtils.getKey(password);
+    public CipherEncoder(byte[] key, byte[] salt) {
+        this.key = key;
         this.salt = salt;
     }
 
