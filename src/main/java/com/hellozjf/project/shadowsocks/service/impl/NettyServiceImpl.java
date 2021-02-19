@@ -44,6 +44,14 @@ public class NettyServiceImpl implements NettyService {
     @Autowired
     private CryptService cryptService;
 
+    @Autowired
+    @Qualifier("bossGroup")
+    private EventLoopGroup bossGroup;
+
+    @Autowired
+    @Qualifier("workerGroup")
+    private EventLoopGroup workerGroup;
+
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
 
     @Override
@@ -67,8 +75,6 @@ public class NettyServiceImpl implements NettyService {
     @Override
     public Channel createPort(int port, String password, String method) throws InterruptedException {
         byte[] key = cryptService.getKey(password);
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(16);
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -92,9 +98,8 @@ public class NettyServiceImpl implements NettyService {
 
     @Override
     public Channel connectTarget(String address, int port, Channel clientHandler, long threadId) throws InterruptedException {
-        EventLoopGroup group = new NioEventLoopGroup(1);
         Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group)
+        bootstrap.group(workerGroup)
                 .channel(NioSocketChannel.class)
                 .remoteAddress(address, port)
                 .handler(new ChannelInitializer<SocketChannel>() {
