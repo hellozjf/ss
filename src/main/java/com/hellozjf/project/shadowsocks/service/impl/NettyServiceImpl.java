@@ -1,10 +1,7 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import com.hellozjf.project.shadowsocks.dao.entity.User;
-import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
-import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
-import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
-import com.hellozjf.project.shadowsocks.handler.TargetHandler;
+import com.hellozjf.project.shadowsocks.handler.*;
 import com.hellozjf.project.shadowsocks.service.CryptService;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
@@ -14,7 +11,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -87,13 +83,16 @@ public class NettyServiceImpl implements NettyService {
                         ch.pipeline()
                                 .addLast(new CipherEncoder(threadId, key))
                                 .addLast(new CipherDecoder(threadId, key))
+                                .addLast(new ClientOutHandler(threadId))
                                 .addLast(new ShadowsocksDecoder(threadId));
                     }
                 });
         // 启动端口
         log.info("正在启动ss端口，port[{}]，password[{}], method[{}]", port, password, method);
         ChannelFuture channelFuture = serverBootstrap.bind().sync();
-        return channelFuture.channel();
+        Channel channel = channelFuture.channel();
+        channel.closeFuture();
+        return channel;
     }
 
     @Override
@@ -107,10 +106,13 @@ public class NettyServiceImpl implements NettyService {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         log.debug("threadId:{} 连接目标 address:{}, port:{}, ", threadId, address, port);
                         ch.pipeline()
-                                .addLast(new TargetHandler(clientHandler, threadId));
+                                .addLast(new TargetOutHandler(threadId))
+                                .addLast(new TargetInHandler(clientHandler, threadId));
                     }
                 });
         ChannelFuture channelFuture = bootstrap.connect().sync();
-        return channelFuture.channel();
+        Channel channel = channelFuture.channel();
+        channel.closeFuture();
+        return channel;
     }
 }

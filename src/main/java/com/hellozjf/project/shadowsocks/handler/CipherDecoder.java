@@ -86,10 +86,4 @@ public class CipherDecoder extends ByteToMessageDecoder {
             ctx.channel().close().sync();
         }
     }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("threadId:{} e = {}", threadId, cause.getMessage());
-        ctx.channel().close().sync();
-    }
 }

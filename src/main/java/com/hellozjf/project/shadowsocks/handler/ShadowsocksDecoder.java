@@ -84,10 +84,11 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
             // 说明连接不上目标服务器，那就不管了，关闭channel拉倒
             log.error("threadId:{} 不能连接：{}:{}", threadId, address, port);
             ctx.channel().close().sync();
+            ctx.pipeline().remove(this);
             return;
         }
         // 创建ClinetHandler，加到pipeline最后面，同时把自己移除掉
-        CilentHandler clientHandler = new CilentHandler(targetChannel, threadId);
+        CilentInHandler clientHandler = new CilentInHandler(targetChannel, threadId);
         ctx.pipeline().addLast(clientHandler);
         ctx.pipeline().remove(this);
 

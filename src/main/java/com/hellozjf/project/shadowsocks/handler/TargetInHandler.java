@@ -1,6 +1,5 @@
 package com.hellozjf.project.shadowsocks.handler;
 
-import cn.hutool.core.util.HexUtil;
 import com.hellozjf.project.shadowsocks.util.DebugUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -12,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
  * 从目标服务器接收到数据
  */
 @Slf4j
-public class TargetHandler extends ChannelInboundHandlerAdapter {
+public class TargetInHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * sslocal的channel
@@ -24,7 +23,7 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
      */
     private long threadId;
 
-    public TargetHandler(Channel clientHandler, long threadId) {
+    public TargetInHandler(Channel clientHandler, long threadId) {
         this.clientHandler = clientHandler;
         this.threadId = threadId;
     }
@@ -49,6 +48,10 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
         DebugUtils.printByteBufInfo(threadId, byteBuf, "target->client");
 
         // 从客户端收到的数据直接转发到目标去
-        clientHandler.writeAndFlush(byteBuf);
+        try {
+            clientHandler.writeAndFlush(byteBuf);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

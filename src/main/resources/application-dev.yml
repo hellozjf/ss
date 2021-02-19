@@ -15,4 +15,4 @@ ss:
     max: 20000
 logging:
   level:
-    com.hellozjf.project.shadowsocks: debug
+    com.hellozjf.project.shadowsocks: info
