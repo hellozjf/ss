@@ -80,7 +80,7 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
             targetChannel = nettyService.connectTarget(address, port, ctx.channel(), threadId);
         } catch (Exception e) {
             // 说明连接不上目标服务器，那就不管了，关闭channel拉倒
-            log.error("threadId: {} 不能连接：{}:{}", threadId, address, port);
+            log.error("threadId:{} 不能连接：{}:{}", threadId, address, port);
             ctx.channel().close().sync();
             return;
         }
