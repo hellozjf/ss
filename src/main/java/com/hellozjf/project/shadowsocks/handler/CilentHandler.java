@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CilentHandler extends ChannelInboundHandlerAdapter {
 
+    /**
+     * 线程ID，用于调试
+     */
     private long threadId;
 
     /**

@@ -67,10 +67,12 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
 
         if (StringUtils.hasLength(address)) {
             // 这个decoder只会出现一次，怎么可能address会有值呢，这是异常情况
+            log.error("address = {}", address);
             return;
         }
 
         if (!initAddress(in)) {
+            log.error("初始化address失败了");
             return;
         }
         // 至此，说明地址已经解析出来了，打印下看看效果
@@ -93,7 +95,7 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
         if (in.readableBytes() != 0) {
             byte[] bytes = new byte[in.readableBytes()];
             in.readBytes(bytes);
-            out.add(Unpooled.copiedBuffer(bytes));
+            out.add(Unpooled.wrappedBuffer(bytes));
         }
     }
 

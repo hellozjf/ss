@@ -52,6 +52,12 @@ public interface CryptService {
     byte[] getKey(String password);
 
     /**
+     * 获取key长度
+     * @return
+     */
+    int getKeyLength();
+
+    /**
      * 获取盐长度
      * @return
      */
@@ -62,6 +68,12 @@ public interface CryptService {
      * @return
      */
     int getTagLength();
+
+    /**
+     * 获取subkey的长度
+     * @return
+     */
+    int getSubkeyLength();
 
     /**
      * 获取随机字节数组

@@ -111,23 +111,46 @@ public class CryptServiceImpl implements CryptService {
 
     @Override
     public int getNonceLength() {
+        // todo aes-256-gcm是12字节
         return 12;
+    }
+
+    @Override
+    public int getKeyLength() {
+        // todo aes-256-gcm是32字节
+        return 32;
+    }
+
+    @Override
+    public int getSubkeyLength() {
+        // todo aes-256-gcm是32字节
+        return 32;
+    }
+
+    @Override
+    public int getSaltLength() {
+        // todo aes-256-gcm是32字节的盐长度
+        return 32;
+    }
+
+    @Override
+    public int getTagLength() {
+        // todo aes-256-gcm是16字节的盐长度
+        return 16;
     }
 
     @Override
     public byte[] genSubkey(byte[] salt, byte[] key) {
         HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA1Digest());
         hkdf.init(new HKDFParameters(key, salt, info));
-        // todo aes-256-gcm是32字节
-        byte[] okm = new byte[32];
-        hkdf.generateBytes(okm, 0, 32);
+        byte[] okm = new byte[getSubkeyLength()];
+        hkdf.generateBytes(okm, 0, getSubkeyLength());
         return okm;
     }
 
     @Override
     public byte[] getKey(String password) {
-        // todo aes-256-gcm是32字节长度
-        byte[] key = new byte[32];
+        byte[] key = new byte[getKeyLength()];
         byte[] passwordBytes = password.getBytes(CharsetUtil.UTF_8);
 
         byte[] hash = null;
@@ -146,17 +169,6 @@ public class CryptServiceImpl implements CryptService {
         }
 
         return key;
-    }
-
-    @Override
-    public int getSaltLength() {
-        // todo aes-256-gcm是32字节的盐长度
-        return 32;
-    }
-
-    @Override
-    public int getTagLength() {
-        return 16;
     }
 
     @Override
