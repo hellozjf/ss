@@ -42,6 +42,9 @@ public class TargetHandler extends ChannelInboundHandlerAdapter {
             log.error("threadId:{} client未连接", threadId);
             return;
         }
+        if (byteBuf.readableBytes() == 0) {
+            return;
+        }
 
         DebugUtils.printByteBufInfo(threadId, byteBuf, "target->client");
 

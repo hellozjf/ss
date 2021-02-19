@@ -42,6 +42,9 @@ public class CilentHandler extends ChannelInboundHandlerAdapter {
             log.error("threadId:{} target未连接", threadId);
             return;
         }
+        if (byteBuf.readableBytes() == 0) {
+            return;
+        }
         // 从客户端收到的数据直接转发到目标去
         DebugUtils.printByteBufInfo(threadId, byteBuf, "client->target");
         targetChannel.writeAndFlush(byteBuf);
