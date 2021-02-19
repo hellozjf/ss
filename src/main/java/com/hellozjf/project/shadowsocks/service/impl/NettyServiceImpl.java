@@ -10,10 +10,7 @@ import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -77,6 +74,7 @@ public class NettyServiceImpl implements NettyService {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.TCP_NODELAY, true)
                 .localAddress(new InetSocketAddress(port))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -103,6 +101,8 @@ public class NettyServiceImpl implements NettyService {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(workerGroup)
                 .channel(NioSocketChannel.class)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
                 .remoteAddress(address, port)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override

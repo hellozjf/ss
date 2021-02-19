@@ -44,6 +44,6 @@ public class BeanConfig {
 
     @Bean(name = "workerGroup")
     public EventLoopGroup workerGroup() {
-        return new NioEventLoopGroup(128);
+        return new NioEventLoopGroup(8);
     }
 }
