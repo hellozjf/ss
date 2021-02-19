@@ -76,24 +76,26 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
         }
         // 至此，说明地址已经解析出来了，打印下看看效果
         log.info("threadId:{} type:{}, address:{}, port:{}", threadId, type, address, port);
-        // 解析出地址了，这里进行网络连接
-        targetChannel = nettyService.connectTarget(address, port, ctx.channel(), threadId);
-        if (targetChannel == null) {
-            // 说明连接不上目标服务器，那就不管了，关闭channel拉倒
-            ctx.channel().close();
-            ctx.pipeline().remove(this);
-            return;
-        }
+
         // 创建ClinetHandler，加到pipeline最后面，同时把自己移除掉
-        CilentInHandler clientHandler = new CilentInHandler(targetChannel, threadId);
+        ClientInHandler clientHandler = new ClientInHandler(threadId);
         ctx.pipeline().addLast(clientHandler);
         ctx.pipeline().remove(this);
+
+        // 解析出地址了，这里进行网络连接
+        nettyService.connectTarget(address, port, ctx.channel(), clientHandler, threadId);
 
         // 把去掉ss头部的数据交给ClientHandler
         if (in.readableBytes() > 0) {
             in.retain();
             out.add(in);
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("threadId:{} 捕获到异常 {}", threadId, cause.getMessage());
+        ctx.channel().close();
     }
 
     /**

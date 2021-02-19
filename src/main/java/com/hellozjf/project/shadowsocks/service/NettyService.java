@@ -1,5 +1,6 @@
 package com.hellozjf.project.shadowsocks.service;
 
+import com.hellozjf.project.shadowsocks.handler.ClientInHandler;
 import io.netty.channel.Channel;
 
 /**
@@ -27,6 +28,6 @@ public interface NettyService {
      * @param port
      * @return
      */
-    Channel connectTarget(String address, int port, Channel clientHandler, long threadId) throws InterruptedException;
+    void connectTarget(String address, int port, Channel clientHandler, ClientInHandler clientInHandler, long threadId) throws InterruptedException;
 
 }

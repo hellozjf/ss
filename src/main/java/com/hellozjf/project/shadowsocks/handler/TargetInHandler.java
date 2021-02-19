@@ -16,15 +16,15 @@ public class TargetInHandler extends ChannelInboundHandlerAdapter {
     /**
      * sslocal的channel
      */
-    private Channel clientHandler;
+    private Channel clientChannel;
 
     /**
      * 所属线程ID
      */
     private long threadId;
 
-    public TargetInHandler(Channel clientHandler, long threadId) {
-        this.clientHandler = clientHandler;
+    public TargetInHandler(Channel clientChannel, long threadId) {
+        this.clientChannel = clientChannel;
         this.threadId = threadId;
     }
 
@@ -37,7 +37,7 @@ public class TargetInHandler extends ChannelInboundHandlerAdapter {
         }
 
         ByteBuf byteBuf = (ByteBuf) msg;
-        if (clientHandler == null) {
+        if (clientChannel == null) {
             log.error("threadId:{} client未连接", threadId);
             return;
         }
@@ -49,9 +49,15 @@ public class TargetInHandler extends ChannelInboundHandlerAdapter {
 
         // 从客户端收到的数据直接转发到目标去
         try {
-            clientHandler.writeAndFlush(byteBuf);
+            clientChannel.writeAndFlush(byteBuf);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.error("threadId:{} 捕获到异常 {}", threadId, cause.getMessage());
+        ctx.channel().close();
     }
 }

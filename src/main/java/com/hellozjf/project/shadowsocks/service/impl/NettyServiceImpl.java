@@ -1,10 +1,7 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import com.hellozjf.project.shadowsocks.dao.entity.User;
-import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
-import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
-import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
-import com.hellozjf.project.shadowsocks.handler.TargetInHandler;
+import com.hellozjf.project.shadowsocks.handler.*;
 import com.hellozjf.project.shadowsocks.service.CryptService;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
@@ -97,12 +94,14 @@ public class NettyServiceImpl implements NettyService {
     }
 
     @Override
-    public Channel connectTarget(String address, int port, Channel clientHandler, long threadId) throws InterruptedException {
+    public void connectTarget(String address, int port, Channel clientChannel, ClientInHandler clientInHandler, long threadId) throws InterruptedException {
+
+        // 配置连接
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(workerGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2 * 60 * 1000)
                 .remoteAddress(address, port)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -110,32 +109,28 @@ public class NettyServiceImpl implements NettyService {
                         log.debug("threadId:{} 连接目标 address:{} port:{}, ", threadId, address, port);
                         ch.pipeline()
 //                                .addLast(new TargetOutHandler(threadId))
-                                .addLast(new TargetInHandler(clientHandler, threadId));
+                                .addLast(new TargetInHandler(clientChannel, threadId));
                     }
                 });
 
         // 连接，并判断连接是成功还是失败
         ChannelFuture channelFuture = null;
-        try {
-            channelFuture = bootstrap.connect().sync();
-            if (channelFuture.isSuccess()) {
+        channelFuture = bootstrap.connect();
+        channelFuture.addListener((ChannelFutureListener) future -> {
+            if (future.isSuccess()) {
                 log.info("threadId:{} 连接目标成功 address:{} port:{}", threadId, address, port);
-                Channel channel = channelFuture.channel();
+                Channel channel = future.channel();
                 channel.closeFuture();
-                return channel;
+                clientInHandler.setTargetChannel(channel);
             } else {
-                log.error("threadId:{} 连接目标失败 address:{} port:{}", threadId, address, port);
-                if (channelFuture.channel().isActive()) {
-                    channelFuture.channel().close();
+                log.error("threadId:{} 连接目标失败 address:{} port:{} cause:{}", threadId, address, port, future.cause().getMessage());
+                if (future.channel().isActive()) {
+                    future.channel().close();
                 }
-                return null;
+                if (clientChannel.isActive()) {
+                    clientChannel.close();
+                }
             }
-        } catch (Exception e) {
-            log.error("threadId:{} 连接目标失败 address:{} port:{}", threadId, address, port);
-            if (channelFuture != null && channelFuture.channel().isActive()) {
-                channelFuture.channel().close();
-            }
-            return null;
-        }
+        });
     }
 }

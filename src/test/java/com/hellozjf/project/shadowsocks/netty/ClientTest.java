@@ -61,7 +61,7 @@ public class ClientTest extends BaseTest {
             // 连上我开启的服务端
             ChannelFuture channelFuture = bootstrap.connect().sync();
             Channel serverChannel = channelFuture.channel();
-            new ClientThread(serverChannel).start();
+            new Client2Thread(serverChannel).start();
             serverChannel.closeFuture().sync();
         } finally {
             group.shutdownGracefully().sync();
@@ -89,9 +89,52 @@ public class ClientTest extends BaseTest {
             }
 
             byte type = 0x03;
-            String address = "www.google.com";
+            String address = "www.baidu.com";
             short port = 80;
-            String content = "GET / HTTP/1.0\r\nHost: www.google.com\r\n\r\n";
+            String content = "GET / HTTP/1.0\r\nHost: www.baidu.com\r\n\r\n";
+
+            ByteBuf byteBuf = Unpooled.buffer();
+            byteBuf.writeByte(type);
+            byteBuf.writeByte(address.length());
+            byteBuf.writeBytes(address.getBytes(CharsetUtil.UTF_8));
+            byteBuf.writeShort(port);
+            byteBuf.writeBytes(content.getBytes(CharsetUtil.UTF_8));
+            channel.writeAndFlush(byteBuf);
+
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            channel.close();
+        }
+    }
+
+    /**
+     * 客户端线程
+     */
+    public static class Client2Thread extends Thread {
+
+        private Channel channel;
+
+        public Client2Thread(Channel serverChannel) {
+            this.channel = serverChannel;
+        }
+
+        @Override
+        public void run() {
+
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            byte type = 0x03;
+            String address = "i0.hdslb.com";
+            short port = 80;
+            String content = "GET /bfs/archive/6df194a1f0853031d052beb5bc5867f01f43d170.jpg@412w_232h_1c HTTP/1.0\r\nHost: i0.hdslb.com\r\n\r\n";
 
             ByteBuf byteBuf = Unpooled.buffer();
             byteBuf.writeByte(type);
