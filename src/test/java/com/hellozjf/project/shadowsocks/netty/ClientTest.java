@@ -4,7 +4,7 @@ import com.hellozjf.project.shadowsocks.BaseTest;
 import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
 import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
 import com.hellozjf.project.shadowsocks.handler.ServerHandler;
-import com.hellozjf.project.shadowsocks.util.CryptUtils;
+import com.hellozjf.project.shadowsocks.service.CryptService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -32,6 +32,9 @@ public class ClientTest extends BaseTest {
     @Qualifier("md5MessageDigest")
     private MessageDigest md5MessageDigest;
 
+    @Autowired
+    private CryptService cryptService;
+
     @Test
     public void connectTest() throws InterruptedException {
 
@@ -39,7 +42,7 @@ public class ClientTest extends BaseTest {
         String password = "123456";
         String method = "aes-256-gcm";
 
-        byte[] key = CryptUtils.getKey(password, md5MessageDigest);
+        byte[] key = cryptService.getKey(password);
         EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap bootstrap = new Bootstrap();

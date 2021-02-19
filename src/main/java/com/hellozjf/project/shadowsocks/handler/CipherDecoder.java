@@ -1,7 +1,8 @@
 package com.hellozjf.project.shadowsocks.handler;
 
 import cn.hutool.core.util.HexUtil;
-import com.hellozjf.project.shadowsocks.util.CryptUtils;
+import cn.hutool.extra.spring.SpringUtil;
+import com.hellozjf.project.shadowsocks.service.CryptService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -10,7 +11,6 @@ import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 
-import java.security.MessageDigest;
 import java.util.List;
 
 /**
@@ -22,17 +22,22 @@ public class CipherDecoder extends ByteToMessageDecoder {
 
     private AEADBlockCipher cipher;
     private byte[] key;
+    private CryptService cryptService;
     private byte[] subkey;
-    private byte[] decNonce = new byte[CryptUtils.getNonceLength()];
+    private byte[] nonce;
 
     public CipherDecoder(byte[] key) {
-        this.key = key;
+        this(key, null);
     }
 
     public CipherDecoder(byte[] key, byte[] salt) {
-        this.key = key;
-        this.subkey = CryptUtils.genSubkey(salt, key);
         this.cipher = new GCMBlockCipher(new AESEngine());
+        this.key = key;
+        this.cryptService = SpringUtil.getBean(CryptService.class);
+        if (salt != null) {
+            this.subkey = cryptService.genSubkey(salt, key);
+        }
+        this.nonce = new byte[cryptService.getNonceLength()];
     }
 
     /**
@@ -56,17 +61,15 @@ public class CipherDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        if (cipher == null) {
-            if (in.readableBytes() < CryptUtils.getSaltLength()) {
-                // 不满32字节，说明连盐都没有
+        if (subkey == null) {
+            if (in.readableBytes() < cryptService.getSaltLength()) {
+                // 说明连盐都没有
                 return;
             }
-            // todo aes-256-gcm是32字节的盐长度
-            byte[] salt = new byte[32];
+            byte[] salt = new byte[cryptService.getSaltLength()];
             in.readBytes(salt);
-            log.debug("dec salt: {}", HexUtil.encodeHexStr(salt));
-            subkey = CryptUtils.genSubkey(salt, key);
-            cipher = new GCMBlockCipher(new AESEngine());
+            log.debug("解密的盐: {}", HexUtil.encodeHexStr(salt));
+            subkey = cryptService.genSubkey(salt, key);
         }
 
         // 读取剩余的字节，将它们解密
@@ -74,7 +77,7 @@ public class CipherDecoder extends ByteToMessageDecoder {
             byte[] bytes = new byte[in.readableBytes()];
             in.getBytes(in.readerIndex(), bytes);
             log.debug("即将解密: {}", HexUtil.encodeHexStr(bytes));
-            CryptUtils.decrypt(in, out, cipher, decNonce, subkey);
+            cryptService.decrypt(in, out, cipher, nonce, subkey);
         } catch (Exception e) {
             log.error("解密失败了: {}", e.getMessage());
             in.resetReaderIndex();

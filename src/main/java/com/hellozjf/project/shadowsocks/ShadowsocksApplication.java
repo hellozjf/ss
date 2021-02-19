@@ -6,10 +6,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 @MapperScan("com.hellozjf.project.shadowsocks.dao.mapper")
+@ComponentScan(basePackages={"cn.hutool.extra.spring"})
+@Import(cn.hutool.extra.spring.SpringUtil.class)
 public class ShadowsocksApplication {
 
 	public static void main(String[] args) {

@@ -5,9 +5,9 @@ import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
 import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
 import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
 import com.hellozjf.project.shadowsocks.handler.TargetHandler;
+import com.hellozjf.project.shadowsocks.service.CryptService;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
-import com.hellozjf.project.shadowsocks.util.CryptUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -41,6 +41,8 @@ public class NettyServiceImpl implements NettyService {
     @Qualifier("md5MessageDigest")
     private MessageDigest md5MessageDigest;
 
+    private CryptService cryptService;
+
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
 
     @Override
@@ -63,7 +65,7 @@ public class NettyServiceImpl implements NettyService {
 
     @Override
     public Channel createPort(int port, String password, String method) throws InterruptedException {
-        byte[] key = CryptUtils.getKey(password, md5MessageDigest);
+        byte[] key = cryptService.getKey(password);
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(16);
         ServerBootstrap serverBootstrap = new ServerBootstrap();

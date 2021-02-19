@@ -1,5 +1,7 @@
-package com.hellozjf.project.shadowsocks.util;
+package com.hellozjf.project.shadowsocks.service.impl;
 
+import com.hellozjf.project.shadowsocks.service.CryptService;
+import com.hellozjf.project.shadowsocks.util.IpUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
@@ -12,6 +14,9 @@ import org.bouncycastle.crypto.modes.AEADCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.HKDFParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -19,24 +24,21 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 加解密工具
+ * 加密服务
  */
 @Slf4j
-public class CryptUtils {
+@Service
+public class CryptServiceImpl implements CryptService {
 
-    private static final int PAYLOAD_SIZE_MASK = 0x3FFF;
-    private static byte[] info = "ss-subkey".getBytes(CharsetUtil.UTF_8);
+    @Autowired
+    @Qualifier("md5MessageDigest")
+    private MessageDigest md5MessageDigest;
 
-    /**
-     * 加密
-     * @param in
-     * @param out
-     * @param cipher
-     * @param encNonce
-     * @param subkey
-     * @throws InvalidCipherTextException
-     */
-    public static void encrypt(ByteBuf in, ByteBuf out, AEADCipher cipher, byte[] encNonce, byte[] subkey) throws InvalidCipherTextException {
+    private final int PAYLOAD_SIZE_MASK = 0x3FFF;
+    private byte[] info = "ss-subkey".getBytes(CharsetUtil.UTF_8);
+
+    @Override
+    public void encrypt(ByteBuf in, ByteBuf out, AEADCipher cipher, byte[] encNonce, byte[] subkey) throws InvalidCipherTextException {
         byte[] encBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
         int nr = Math.min(in.readableBytes(), PAYLOAD_SIZE_MASK);
         // 先写两字节长度
@@ -63,14 +65,8 @@ public class CryptUtils {
         out.writeBytes(encBuffer, 2 + getTagLength(), nr + getTagLength());
     }
 
-    /**
-     * 解密
-     *
-     * @param in
-     * @param out
-     * @return
-     */
-    public static void decrypt(ByteBuf in, List<Object> out, AEADCipher cipher, byte[] decNonce, byte[] subkey) throws InvalidCipherTextException {
+    @Override
+    public void decrypt(ByteBuf in, List<Object> out, AEADCipher cipher, byte[] decNonce, byte[] subkey) throws InvalidCipherTextException {
         byte[] decBuffer = new byte[2 + getTagLength() + PAYLOAD_SIZE_MASK + getTagLength()];
         ByteBuf decByteBuf = null;
         while (true) {
@@ -119,11 +115,13 @@ public class CryptUtils {
         }
     }
 
-    public static int getNonceLength() {
+    @Override
+    public int getNonceLength() {
         return 12;
     }
 
-    public static byte[] genSubkey(byte[] salt, byte[] key) {
+    @Override
+    public byte[] genSubkey(byte[] salt, byte[] key) {
         HKDFBytesGenerator hkdf = new HKDFBytesGenerator(new SHA1Digest());
         hkdf.init(new HKDFParameters(key, salt, info));
         // todo aes-256-gcm是32字节
@@ -132,7 +130,8 @@ public class CryptUtils {
         return okm;
     }
 
-    public static byte[] getKey(String password, MessageDigest md5MessageDigest) {
+    @Override
+    public byte[] getKey(String password) {
         // todo aes-256-gcm是32字节长度
         byte[] key = new byte[32];
         byte[] passwordBytes = password.getBytes(CharsetUtil.UTF_8);
@@ -155,17 +154,25 @@ public class CryptUtils {
         return key;
     }
 
-    public static int getSaltLength() {
+    @Override
+    public int getSaltLength() {
+        // todo aes-256-gcm是32字节的盐长度
         return 32;
     }
 
-    public static byte[] randomBytes(int size) {
+    @Override
+    public int getTagLength() {
+        return 16;
+    }
+
+    @Override
+    public byte[] randomBytes(int size) {
         byte[] bytes = new byte[size];
         new SecureRandom().nextBytes(bytes);
         return bytes;
     }
 
-    private static void increment(byte[] nonce) {
+    private void increment(byte[] nonce) {
         for (int i = 0; i < nonce.length; i++) {
             ++nonce[i];
             if (nonce[i] != 0) {
@@ -174,11 +181,7 @@ public class CryptUtils {
         }
     }
 
-    private static int getTagLength() {
-        return 16;
-    }
-
-    private static CipherParameters getCipherParameters(byte[] rawNonce, byte[] subkey) {
+    private CipherParameters getCipherParameters(byte[] rawNonce, byte[] subkey) {
         byte[] nonce = Arrays.copyOf(rawNonce, getNonceLength());
         return new AEADParameters(
                 new KeyParameter(subkey),
