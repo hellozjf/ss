@@ -20,6 +20,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         byte[] sendBytes = new byte[msg.readableBytes()];
         msg.readBytes(sendBytes);
 //        log.info("server say: {}", new String(sendBytes, CharsetUtil.UTF_8));
-        FileUtil.writeBytes(sendBytes, new File("hello"));
+        FileUtil.writeBytes(sendBytes, new File("str"));
     }
 }

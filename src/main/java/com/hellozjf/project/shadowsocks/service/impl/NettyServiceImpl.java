@@ -71,6 +71,7 @@ public class NettyServiceImpl implements NettyService {
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
+                // TCP传输不要延迟
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .localAddress(new InetSocketAddress(port))
                 .childHandler(new ChannelInitializer<SocketChannel>() {
@@ -100,8 +101,10 @@ public class NettyServiceImpl implements NettyService {
         Bootstrap bootstrap = new Bootstrap();
         bootstrap.group(workerGroup)
                 .channel(NioSocketChannel.class)
+                // TCP传输不要延迟
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 2 * 60 * 1000)
+                // 连接超时时间设置为10秒
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10 * 1000)
                 .remoteAddress(address, port)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
