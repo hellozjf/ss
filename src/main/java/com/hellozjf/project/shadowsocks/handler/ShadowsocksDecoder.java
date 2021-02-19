@@ -4,7 +4,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.util.IpUtils;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -78,12 +77,10 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
         // 至此，说明地址已经解析出来了，打印下看看效果
         log.info("threadId:{} type:{}, address:{}, port:{}", threadId, type, address, port);
         // 解析出地址了，这里进行网络连接
-        try {
-            targetChannel = nettyService.connectTarget(address, port, ctx.channel(), threadId);
-        } catch (Exception e) {
+        targetChannel = nettyService.connectTarget(address, port, ctx.channel(), threadId);
+        if (targetChannel == null) {
             // 说明连接不上目标服务器，那就不管了，关闭channel拉倒
-            log.error("threadId:{} 不能连接：{}:{}", threadId, address, port);
-            ctx.channel().close().sync();
+            ctx.channel().close();
             ctx.pipeline().remove(this);
             return;
         }
@@ -93,15 +90,15 @@ public class ShadowsocksDecoder extends ByteToMessageDecoder {
         ctx.pipeline().remove(this);
 
         // 把去掉ss头部的数据交给ClientHandler
-        if (in.readableBytes() != 0) {
-            byte[] bytes = new byte[in.readableBytes()];
-            in.readBytes(bytes);
-            out.add(Unpooled.wrappedBuffer(bytes));
+        if (in.readableBytes() > 0) {
+            in.retain();
+            out.add(in);
         }
     }
 
     /**
      * 初始化地址信息
+     *
      * @param in
      */
     private boolean initAddress(ByteBuf in) {

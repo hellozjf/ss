@@ -1,7 +1,10 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import com.hellozjf.project.shadowsocks.dao.entity.User;
-import com.hellozjf.project.shadowsocks.handler.*;
+import com.hellozjf.project.shadowsocks.handler.CipherDecoder;
+import com.hellozjf.project.shadowsocks.handler.CipherEncoder;
+import com.hellozjf.project.shadowsocks.handler.ShadowsocksDecoder;
+import com.hellozjf.project.shadowsocks.handler.TargetInHandler;
 import com.hellozjf.project.shadowsocks.service.CryptService;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
@@ -83,7 +86,7 @@ public class NettyServiceImpl implements NettyService {
                         ch.pipeline()
                                 .addLast(new CipherEncoder(threadId, key))
                                 .addLast(new CipherDecoder(threadId, key))
-                                .addLast(new ClientOutHandler(threadId))
+//                                .addLast(new ClientOutHandler(threadId))
                                 .addLast(new ShadowsocksDecoder(threadId));
                     }
                 });
@@ -104,15 +107,35 @@ public class NettyServiceImpl implements NettyService {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        log.debug("threadId:{} 连接目标 address:{}, port:{}, ", threadId, address, port);
+                        log.debug("threadId:{} 连接目标 address:{} port:{}, ", threadId, address, port);
                         ch.pipeline()
-                                .addLast(new TargetOutHandler(threadId))
+//                                .addLast(new TargetOutHandler(threadId))
                                 .addLast(new TargetInHandler(clientHandler, threadId));
                     }
                 });
-        ChannelFuture channelFuture = bootstrap.connect().sync();
-        Channel channel = channelFuture.channel();
-        channel.closeFuture();
-        return channel;
+
+        // 连接，并判断连接是成功还是失败
+        ChannelFuture channelFuture = null;
+        try {
+            channelFuture = bootstrap.connect().sync();
+            if (channelFuture.isSuccess()) {
+                log.info("threadId:{} 连接目标成功 address:{} port:{}", threadId, address, port);
+                Channel channel = channelFuture.channel();
+                channel.closeFuture();
+                return channel;
+            } else {
+                log.error("threadId:{} 连接目标失败 address:{} port:{}", threadId, address, port);
+                if (channelFuture.channel().isActive()) {
+                    channelFuture.channel().close();
+                }
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("threadId:{} 连接目标失败 address:{} port:{}", threadId, address, port);
+            if (channelFuture != null && channelFuture.channel().isActive()) {
+                channelFuture.channel().close();
+            }
+            return null;
+        }
     }
 }
