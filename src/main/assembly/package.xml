@@ -21,14 +21,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>src/main/resources/sql</directory>
-            <outputDirectory>sql</outputDirectory>
-            <includes>
-                <include>*.sql</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/resources/db</directory>
+            <directory>db</directory>
             <outputDirectory>db</outputDirectory>
             <includes>
                 <include>*.mv.db</include>

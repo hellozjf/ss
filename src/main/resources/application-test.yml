@@ -7,8 +7,6 @@ spring:
 logging:
   level:
     com.hellozjf.project.shadowsocks: info
-  file:
-    name: log/ss.log
 ss:
   snowflake:
     worker-id: 1
