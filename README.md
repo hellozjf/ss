@@ -2,8 +2,6 @@
 
 根据本人调试shadowsocks的经验，写出本文，以便让自己不会忘记shadowsocks协议的实现细节。
 
-<!-- more -->
-
 ## 整体流程
 
 
@@ -121,7 +119,9 @@ ss头部与正常请求数据结合在一起形成明文，和加密解密中的
 [https://github.com/shadowsocks/shadowsocks](https://github.com/shadowsocks/shadowsocks)
 [https://github.com/TongxiJi/shadowsocks-java](https://github.com/TongxiJi/shadowsocks-java)
 
-# 代码运行说明
+# 代码说明
+
+## 下载说明
 
 下载完代码之后，需要执行
 
@@ -131,3 +131,13 @@ git update-index --assume-unchanged db/ss.trace.db
 ```
 
 将db/ss.mv.db和ss.trace.db的修改记录去掉
+
+## 后续工作
+
+- [x] 实现最基本的aes-256-gcm加密翻墙功能
+- [ ] 实现用户增删改查接口
+- [ ] 实现登录注册功能
+- [ ] 实现接口权限功能
+- [ ] 实现流量限速功能
+- [ ] 实现更多的加密协议
+- [ ] 实现v2ray协议
