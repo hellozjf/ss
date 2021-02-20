@@ -1,11 +1,16 @@
 spring:
   datasource:
     driver-class-name: org.h2.Driver
-    schema: classpath:db/schema-h2.sql
-    data: classpath:db/data-h2.sql
+    schema: db/schema-h2.sql
+    data: db/data-h2.sql
     url: jdbc:h2:mem:test
     username: admin
     password: 123456
+logging:
+  level:
+    com.hellozjf.project.shadowsocks: debug
+  file:
+    name: log/ss.log
 ss:
   snowflake:
     worker-id: 1
@@ -13,6 +18,3 @@ ss:
   user-port:
     min: 10000
     max: 20000
-logging:
-  level:
-    com.hellozjf.project.shadowsocks: debug
