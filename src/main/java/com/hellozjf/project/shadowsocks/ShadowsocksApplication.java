@@ -5,6 +5,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -16,7 +17,10 @@ import org.springframework.context.annotation.Profile;
 public class ShadowsocksApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ShadowsocksApplication.class, args);
+		SpringApplication app = new SpringApplication(ShadowsocksApplication.class);
+		// 生成PID文件
+		app.addListeners(new ApplicationPidFileWriter("bin/run.pid"));
+		app.run(args);
 	}
 
 	@Bean
