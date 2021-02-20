@@ -1,4 +1,4 @@
-package com.hellozjf.project.shadowsocks.request;
+package com.hellozjf.project.shadowsocks.vo;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -6,12 +6,12 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 
-/**
- * 添加用户的请求
- */
-@ApiModel("新增用户请求")
+@ApiModel("用户更新请求")
 @Data
-public class UserAddReq {
+public class UserUpdateVO {
+    @ApiModelProperty(value = "用户ID")
+    @NotEmpty(message = "")
+    private String id;
     @ApiModelProperty(value = "用户名")
     @NotEmpty(message = "用户名不能为空")
     private String username;

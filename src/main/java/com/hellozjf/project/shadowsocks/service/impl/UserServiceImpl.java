@@ -9,7 +9,7 @@ import com.hellozjf.project.shadowsocks.config.UserPortConfig;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.dao.mapper.UserMapper;
 import com.hellozjf.project.shadowsocks.exception.ApiException;
-import com.hellozjf.project.shadowsocks.request.UserAddReq;
+import com.hellozjf.project.shadowsocks.vo.UserAddVO;
 import com.hellozjf.project.shadowsocks.response.UserListResp;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
@@ -40,14 +40,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean save(UserAddReq userAddReq) {
+    public boolean save(UserAddVO userAddVO) {
 
         // 检查参数
-        checkSaveParams(userAddReq);
+        checkSaveParams(userAddVO);
 
         // 新建用户
         User user = new User();
-        BeanUtil.copyProperties(userAddReq, user);
+        BeanUtil.copyProperties(userAddVO, user);
         user.setId(snowflake.nextId());
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
@@ -87,19 +87,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     /**
      * 检查入参是否合法
      */
-    private void checkSaveParams(UserAddReq userAddReq) {
-        if (userAddReq == null) {
+    private void checkSaveParams(UserAddVO userAddVO) {
+        if (userAddVO == null) {
             throw new RuntimeException("req不能为空");
         }
         // 检查数据库有没有重复的用户名
         QueryWrapper<User> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("username", userAddReq.getUsername());
+        queryWrapper.eq("username", userAddVO.getUsername());
         if (userMapper.selectCount(queryWrapper) > 0) {
             throw new RuntimeException("用户名重复");
         }
         // 检查数据库有没有重复的邮箱
         queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("email", userAddReq.getEmail());
+        queryWrapper.eq("email", userAddVO.getEmail());
         if (userMapper.selectCount(queryWrapper) > 0) {
             throw new RuntimeException("邮箱重复");
         }

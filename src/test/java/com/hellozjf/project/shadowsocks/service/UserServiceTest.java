@@ -2,14 +2,12 @@ package com.hellozjf.project.shadowsocks.service;
 
 import com.hellozjf.project.shadowsocks.BaseTest;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
-import com.hellozjf.project.shadowsocks.request.UserAddReq;
+import com.hellozjf.project.shadowsocks.vo.UserAddVO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 测试service
@@ -28,11 +26,11 @@ public class UserServiceTest extends BaseTest {
 
     @Test
     public void add() {
-        UserAddReq userAddReq = new UserAddReq();
-        userAddReq.setUsername("zjf");
-        userAddReq.setPassword("123456");
-        userAddReq.setEmail("zhoujingfeng0338@gmail.com");
-        boolean save = userService.save(userAddReq);
+        UserAddVO userAddVO = new UserAddVO();
+        userAddVO.setUsername("zjf");
+        userAddVO.setPassword("123456");
+        userAddVO.setEmail("zhoujingfeng0338@gmail.com");
+        boolean save = userService.save(userAddVO);
         log.info("save = {}", save);
 
 

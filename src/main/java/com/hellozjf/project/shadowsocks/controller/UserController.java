@@ -2,8 +2,9 @@ package com.hellozjf.project.shadowsocks.controller;
 
 import com.hellozjf.project.shadowsocks.api.ApiController;
 import com.hellozjf.project.shadowsocks.api.R;
-import com.hellozjf.project.shadowsocks.request.UserAddReq;
+import com.hellozjf.project.shadowsocks.vo.UserAddVO;
 import com.hellozjf.project.shadowsocks.service.UserService;
+import com.hellozjf.project.shadowsocks.vo.UserUpdateVO;
 import com.hellozjf.project.shadowsocks.vo.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -23,8 +24,15 @@ public class UserController extends ApiController {
 
     @ApiOperation(value = "添加一个用户")
     @PostMapping(path = "")
-    public R<Boolean> addUser(@Valid @RequestBody UserAddReq userAddReq) {
-        return success(userService.save(userAddReq));
+    public R<Boolean> addUser(@Valid @RequestBody UserAddVO userAddVO) {
+        return success(userService.save(userAddVO));
+    }
+
+    @ApiOperation(value = "修改一个用户")
+    @PutMapping(path = "")
+    public R<Boolean> modifyUser(@Valid @RequestBody UserUpdateVO userUpdateVO) {
+        // todo
+        return null;
     }
 
     @ApiOperation(value = "查看所有用户")
