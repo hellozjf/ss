@@ -2,6 +2,7 @@ package com.hellozjf.project.shadowsocks.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,6 +13,8 @@ import com.hellozjf.project.shadowsocks.exception.ApiException;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
 import com.hellozjf.project.shadowsocks.vo.UserAddVO;
+import com.hellozjf.project.shadowsocks.vo.UserDeleteVO;
+import com.hellozjf.project.shadowsocks.vo.UserUpdateVO;
 import com.hellozjf.project.shadowsocks.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,7 +50,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 新建用户
         User user = new User();
         BeanUtil.copyProperties(userAddVO, user);
-        user.setId(snowflake.nextId());
+        user.setId(IdUtil.simpleUUID());
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setIsDel("N");
@@ -72,15 +75,61 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return ret;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean update(UserUpdateVO userUpdateVO) {
+        User user = new User();
+        BeanUtil.copyProperties(userUpdateVO, user);
+        return updateById(user);
+    }
+
+    @Override
+    public boolean delete(UserDeleteVO userDeleteVO) {
+        for (String id : userDeleteVO.getIdList()) {
+            delete(id);
+        }
+        return true;
+    }
+
+    /**
+     * 删除一个用户
+     * @param id
+     * @return
+     */
+    private boolean delete(String id) {
+        User user = getById(id);
+        user.setId(id);
+        user.setIsDel("Y");
+        updateById(user);
+
+        // 删掉用户的同时，也要把相应的端口关掉
+        int port = user.getPort();
+        nettyService.deletePort(port);
+        return true;
+    }
+
     @Override
     public List<UserVO> listAll() {
-        List<User> list = list();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_del", "N");
+        List<User> list = list(queryWrapper);
         List<UserVO> collect = list.stream().map(entity -> {
             UserVO userVO = new UserVO();
             BeanUtil.copyProperties(entity, userVO);
             return userVO;
         }).collect(Collectors.toList());
         return collect;
+    }
+
+    @Override
+    public UserVO getUser(String id) {
+        User user = getById(id);
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user, userVO);
+        return userVO;
     }
 
     /**

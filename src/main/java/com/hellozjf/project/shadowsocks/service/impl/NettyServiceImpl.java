@@ -56,8 +56,7 @@ public class NettyServiceImpl implements NettyService {
             if (user.getPort() != null && StringUtils.hasLength(user.getPassword())) {
                 try {
                     // 启动端口，加密方式写死为aes-256-gcm
-                    Channel channel = createPort(user.getPort(), user.getPassword(), "aes-256-gcm");
-                    portChannelMap.put(user.getPort(), channel);
+                    createPort(user.getPort(), user.getPassword(), "aes-256-gcm");
                 } catch (Exception e) {
                     log.error("e = {}", e.getMessage());
                 }
@@ -90,8 +89,16 @@ public class NettyServiceImpl implements NettyService {
         log.info("正在启动ss端口，port[{}]，password[{}], method[{}]", port, password, method);
         ChannelFuture channelFuture = serverBootstrap.bind().sync();
         Channel channel = channelFuture.channel();
+        portChannelMap.put(port, channel);
         channel.closeFuture();
         return channel;
+    }
+
+    @Override
+    public void deletePort(int port) {
+        Channel channel = portChannelMap.get(port);
+        channel.close();
+        portChannelMap.remove(port);
     }
 
     @Override

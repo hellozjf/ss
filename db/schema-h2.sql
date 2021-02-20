@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS user;
 
 CREATE TABLE user
 (
-	id BIGINT(20) NOT NULL COMMENT '主键ID',
+	id VARCHAR(32) NOT NULL COMMENT '主键ID',
 	create_time DATETIME NOT NULL COMMENT '创建时间',
 	update_time DATETIME NOT NULL COMMENT '修改时间',
 	is_del CHAR(1) NOT NULL COMMENT '是否删除，Y已删除，N未删除',

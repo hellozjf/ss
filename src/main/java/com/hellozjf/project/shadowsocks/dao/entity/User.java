@@ -6,7 +6,7 @@ import java.util.Date;
 
 @Data
 public class User {
-    private Long id;
+    private String id;
     private Date createTime;
     private Date updateTime;
     private String isDel;

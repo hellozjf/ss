@@ -23,6 +23,12 @@ public interface NettyService {
     Channel createPort(int port, String password, String method) throws InterruptedException;
 
     /**
+     * 删除端口
+     * @param port
+     */
+    void deletePort(int port);
+
+    /**
      * 连接目标服务器
      * @param address
      * @param port
