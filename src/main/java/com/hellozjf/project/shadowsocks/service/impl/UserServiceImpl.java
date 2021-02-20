@@ -8,14 +8,19 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hellozjf.project.shadowsocks.config.UserPortConfig;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.dao.mapper.UserMapper;
+import com.hellozjf.project.shadowsocks.exception.ApiException;
 import com.hellozjf.project.shadowsocks.request.UserAddReq;
+import com.hellozjf.project.shadowsocks.response.UserListResp;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
+import com.hellozjf.project.shadowsocks.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
@@ -62,10 +67,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             try {
                 nettyService.createPort(user.getPort(), user.getPassword(), "aes-256-gcm");
             } catch (InterruptedException e) {
-                throw new RuntimeException("启动端口失败，用户添加失败");
+                throw new ApiException("启动端口失败，用户添加失败");
             }
         }
         return ret;
+    }
+
+    @Override
+    public List<UserVO> listAll() {
+        List<User> list = list();
+        List<UserVO> collect = list.stream().map(entity -> {
+            UserVO userVO = new UserVO();
+            BeanUtil.copyProperties(entity, userVO);
+            return userVO;
+        }).collect(Collectors.toList());
+        return collect;
     }
 
     /**
