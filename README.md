@@ -1,8 +1,10 @@
+# shadowsocks协议详解
+
 根据本人调试shadowsocks的经验，写出本文，以便让自己不会忘记shadowsocks协议的实现细节。
 
 <!-- more -->
 
-# 整体流程
+## 整体流程
 
 
 
@@ -16,19 +18,19 @@
 6. sslocal收到数据，取出32字节的盐，再用aes-256-gcm进行解密，将解密好的数据通过socks5协议返回给浏览器
 7. 浏览器收到数据，展示页面结果
 
-# 详细说明
+## 详细说明
 
-## 基本概念
+### 基本概念
 
-### password
+#### password
 
 shadowsocks的密码，这个在配置shadowsocks连接的时候会用到
 
-### method
+#### method
 
 aes-256-gcm，这是加密方式，此外还有aes-128-gcm、aes-192-gcm、chacha20-ietf-poly1305、xchacha20-ietf-poly1305，因为时间有限我只研究了aes-256-gcm
 
-### key
+#### key
 
 密钥，根据password和method生成
 
@@ -40,11 +42,11 @@ method决定key的长度，例如aes-256-gcm就是32字节
 
 参考代码：`com.hellozjf.project.shadowsocks.service.impl.CryptServiceImpl#getKey`
 
-### salt
+#### salt
 
 盐，也称为IV，在aes-256-gcm中为32字节
 
-### subkey
+#### subkey
 
 子密钥，根据key和salt生成，aes-256-gcm是32字节
 
@@ -52,15 +54,15 @@ method决定key的长度，例如aes-256-gcm就是32字节
 
 参考代码：`com.hellozjf.project.shadowsocks.service.impl.CryptServiceImpl#genSubkey`
 
-### tag
+#### tag
 
 标签，aes-256-gcm中每次加密都会生成一个16字节的tag，具体干嘛用的我也不知道
 
-### nonce
+#### nonce
 
 不知道怎么称呼它，在aes-256-gcm中它是12字节byte数组，每次加密都会使最前面的byte加1，前面的byte满了会让下一个byte加1
 
-## aes-256-gcm加密
+### aes-256-gcm加密
 
 每一次请求，都先会产生一个随机的32字节salt
 
@@ -80,7 +82,7 @@ method决定key的长度，例如aes-256-gcm就是32字节
 
 **注意：每一次请求只会有一个salt，不管本次请求数据有多长salt都是不会变的。不同的请求salt是不同的。**
 
-## aes-256-gcm解密
+### aes-256-gcm解密
 
 每一次请求，在aes-256-gcm中都先取出头部32字节salt
 
@@ -94,7 +96,7 @@ method决定key的长度，例如aes-256-gcm就是32字节
 
 将所有内容拼起来就是解密后的结果
 
-## ss头部
+### ss头部
 
 ss头部与加密解密无关，因为正常的数据中只有请求数据，而没有请求服务器的地址，所以在请求数据的头部加了1+n+2个字节表示请求服务器的地址
 
@@ -104,17 +106,28 @@ ss头部格式如下图所示
 
 ss头部与正常请求数据结合在一起形成明文，和加密解密中的salt一样，ss头部每次请求也只有一个
 
-# 总结
+## 总结
 
 一图胜万言
 
 ![](https://hellozjf-oss.oss-cn-hangzhou.aliyuncs.com/uploads/2021/2/20/ss总结.jpg)
 
-# 代码地址
+## 代码地址
 
 [https://gitee.com/nbda1121440/shadowsocks](https://gitee.com/nbda1121440/shadowsocks)
 
-# 鸣谢
+## 鸣谢
 
 [https://github.com/shadowsocks/shadowsocks](https://github.com/shadowsocks/shadowsocks)
 [https://github.com/TongxiJi/shadowsocks-java](https://github.com/TongxiJi/shadowsocks-java)
+
+# 代码运行说明
+
+下载完代码之后，需要执行
+
+```
+git update-index --assume-unchanged db/ss.mv.db
+git update-index --assume-unchanged db/ss.trace.db
+```
+
+将db/ss.mv.db和ss.trace.db的修改记录去掉
