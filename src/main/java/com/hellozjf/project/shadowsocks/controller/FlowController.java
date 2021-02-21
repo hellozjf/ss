@@ -5,10 +5,7 @@ import com.hellozjf.project.shadowsocks.api.R;
 import com.hellozjf.project.shadowsocks.dao.entity.Flow;
 import com.hellozjf.project.shadowsocks.service.FlowService;
 import com.hellozjf.project.shadowsocks.service.UserService;
-import com.hellozjf.project.shadowsocks.vo.UserAddVO;
-import com.hellozjf.project.shadowsocks.vo.UserDeleteVO;
-import com.hellozjf.project.shadowsocks.vo.UserUpdateVO;
-import com.hellozjf.project.shadowsocks.vo.UserVO;
+import com.hellozjf.project.shadowsocks.vo.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +22,9 @@ public class FlowController extends ApiController {
     @Autowired
     private FlowService flowService;
 
-    @ApiOperation(value = "查看所有流量")
+    @ApiOperation(value = "查看流量信息")
     @GetMapping(path = "")
-    public R<List<Flow>> listFlows() {
-        return success(flowService.list());
+    public R<List<FlowVO>> listFlowsByCondition(FlowQueryVO flowQueryVO) {
+        return success(flowService.list(flowQueryVO));
     }
 }

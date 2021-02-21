@@ -24,6 +24,7 @@ CREATE TABLE flow
 	size INT NOT NULL COMMENT '流量大小',
     PRIMARY KEY (id)
 );
+CREATE INDEX index_flow ON flow(host, port, create_time);
 
 CREATE TABLE flow_sum
 (
