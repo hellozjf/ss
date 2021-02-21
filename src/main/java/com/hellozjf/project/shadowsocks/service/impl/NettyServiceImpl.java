@@ -1,5 +1,7 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
+import cn.hutool.core.lang.Snowflake;
+import com.hellozjf.project.shadowsocks.config.SnowflakeConfig;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.handler.*;
 import com.hellozjf.project.shadowsocks.service.CryptService;
@@ -48,6 +50,9 @@ public class NettyServiceImpl implements NettyService {
     private EventLoopGroup workerGroup;
 
     @Autowired
+    private Snowflake snowflake;
+
+    @Autowired
     private ScheduledExecutorService scheduledExecutorService;
 
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
@@ -94,7 +99,7 @@ public class NettyServiceImpl implements NettyService {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        long threadId = Thread.currentThread().getId();
+                        long threadId = snowflake.nextId();
                         log.debug("threadId:{} 接入客户端，ch = {}", threadId, ch);
                         ch.pipeline()
                                 .addLast(new FlowOutRecordHandler(port, threadId))
