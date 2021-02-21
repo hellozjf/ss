@@ -74,6 +74,14 @@ public class ClientInHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (targetChannel != null && targetChannel.isActive()) {
+            targetChannel.close();
+        }
+        super.channelInactive(ctx);
+    }
+
     /**
      * 把数据包发送给target
      * @param byteBuf

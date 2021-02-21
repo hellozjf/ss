@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * bean
@@ -45,5 +47,10 @@ public class BeanConfig {
     @Bean(name = "workerGroup")
     public EventLoopGroup workerGroup() {
         return new NioEventLoopGroup(2);
+    }
+
+    @Bean
+    public ScheduledExecutorService scheduledExecutorService() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 }

@@ -11,6 +11,7 @@ import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,6 +23,7 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @Service
@@ -45,6 +47,9 @@ public class NettyServiceImpl implements NettyService {
     @Qualifier("workerGroup")
     private EventLoopGroup workerGroup;
 
+    @Autowired
+    private ScheduledExecutorService scheduledExecutorService;
+
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
 
     @Override
@@ -66,7 +71,20 @@ public class NettyServiceImpl implements NettyService {
 
     @Override
     public Channel createPort(int port, String password, String method) throws InterruptedException {
+
+        // 根据密码生成相应的key
         byte[] key = cryptService.getKey(password);
+
+        // 创建一个流量整形Handler
+        // todo 速率需要从数据库中获取
+        GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
+                scheduledExecutorService,
+                10 * 1024,
+                10 * 1024,
+                1000,
+                Integer.MAX_VALUE
+        );
+
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         serverBootstrap.group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -81,6 +99,7 @@ public class NettyServiceImpl implements NettyService {
                         ch.pipeline()
                                 .addLast(new FlowOutRecordHandler(port, threadId))
                                 .addLast(new FlowInRecordHandler(port, threadId))
+                                .addLast(globalTrafficShapingHandler)
                                 .addLast(new CipherEncoder(threadId, key))
                                 .addLast(new CipherDecoder(threadId, key))
                                 .addLast(new ShadowsocksDecoder(threadId));

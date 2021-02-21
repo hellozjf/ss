@@ -56,6 +56,15 @@ public class TargetInHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (clientChannel != null && clientChannel.isActive()) {
+            clientChannel.close();
+            clientChannel = null;
+        }
+        super.channelInactive(ctx);
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("threadId:{} 捕获到异常 {}", threadId, cause.getMessage());
         ctx.channel().close();
