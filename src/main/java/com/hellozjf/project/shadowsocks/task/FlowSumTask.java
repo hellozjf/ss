@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.hellozjf.project.shadowsocks.config.SSConfig;
+import com.hellozjf.project.shadowsocks.constant.FlowTypeConstant;
 import com.hellozjf.project.shadowsocks.dao.entity.FlowSum;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.service.FlowService;
@@ -43,15 +44,15 @@ public class FlowSumTask {
     public void doSum() {
 
         DateTime nowTime = DateTime.now();
-        DateTime startTime = nowTime
+        DateTime endTime = nowTime
                 .setField(DateField.SECOND, 0)
                 .setField(DateField.MILLISECOND, 0);
-        DateTime endTime = DateUtil.offset(startTime, DateField.MINUTE, 1);
+        DateTime startTime = DateUtil.offset(endTime, DateField.MINUTE, -1);
 
         List<User> userList = userService.list();
         for (User user : userList) {
 
-            // 统计出这个用户这个10秒的流量信息
+            // 统计出这个用户这一分钟的流量信息
             FlowQueryVO flowQueryVO = new FlowQueryVO();
             flowQueryVO.setHost(ssConfig.getHost());
             flowQueryVO.setPort(user.getPort());
@@ -70,8 +71,11 @@ public class FlowSumTask {
             int downloadSize = 0;
             int uploadSize = 0;
             for (FlowVO flowVO : flowVOList) {
-                downloadSize += flowVO.getSize();
-                uploadSize += flowVO.getSize();
+                if (flowVO.getType().equals(FlowTypeConstant.DOWNLOAD)) {
+                    downloadSize += flowVO.getSize();
+                } else if (flowVO.getType().equals(FlowTypeConstant.UPLOAD)) {
+                    uploadSize += flowVO.getSize();
+                }
             }
             flowSum.setDownloadSize(downloadSize);
             flowSum.setUploadSize(uploadSize);
