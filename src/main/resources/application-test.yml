@@ -14,3 +14,4 @@ ss:
   user-port:
     min: 10000
     max: 20000
+  host: hk.hellozjf.com

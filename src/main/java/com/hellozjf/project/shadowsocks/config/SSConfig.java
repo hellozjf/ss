@@ -10,4 +10,5 @@ import org.springframework.context.annotation.Configuration;
 public class SSConfig {
     private SnowflakeConfig snowflake;
     private UserPortConfig userPort;
+    private String host;
 }

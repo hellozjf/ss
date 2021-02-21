@@ -79,9 +79,10 @@ public class NettyServiceImpl implements NettyService {
                         long threadId = Thread.currentThread().getId();
                         log.debug("threadId:{} 接入客户端，ch = {}", threadId, ch);
                         ch.pipeline()
+                                .addLast(new FlowOutRecordHandler(port, threadId))
+                                .addLast(new FlowInRecordHandler(port, threadId))
                                 .addLast(new CipherEncoder(threadId, key))
                                 .addLast(new CipherDecoder(threadId, key))
-//                                .addLast(new ClientOutHandler(threadId))
                                 .addLast(new ShadowsocksDecoder(threadId));
                     }
                 });
@@ -118,7 +119,6 @@ public class NettyServiceImpl implements NettyService {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         log.debug("threadId:{} 连接目标 address:{} port:{}, ", threadId, address, port);
                         ch.pipeline()
-//                                .addLast(new TargetOutHandler(threadId))
                                 .addLast(new TargetInHandler(clientChannel, threadId));
                     }
                 });

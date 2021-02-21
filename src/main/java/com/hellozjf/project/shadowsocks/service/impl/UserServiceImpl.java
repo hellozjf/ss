@@ -1,7 +1,6 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -30,9 +29,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Autowired
     private UserMapper userMapper;
-
-    @Autowired
-    private Snowflake snowflake;
 
     @Autowired
     private UserPortConfig userPortConfig;
