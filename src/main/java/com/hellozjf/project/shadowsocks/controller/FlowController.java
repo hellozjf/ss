@@ -24,7 +24,7 @@ public class FlowController extends ApiController {
 
     @ApiOperation(value = "查看流量信息")
     @GetMapping(path = "")
-    public R<List<FlowVO>> listFlowsByCondition(FlowQueryVO flowQueryVO) {
+    public R<List<FlowVO>> listFlows(FlowQueryVO flowQueryVO) {
         return success(flowService.list(flowQueryVO));
     }
 }

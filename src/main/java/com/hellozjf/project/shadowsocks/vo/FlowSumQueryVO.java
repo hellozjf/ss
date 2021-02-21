@@ -8,9 +8,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
-@ApiModel("流量查询信息")
+@ApiModel("流量汇总查询信息")
 @Data
-public class FlowQueryVO {
+public class FlowSumQueryVO {
 
     @ApiModelProperty(value = "代理服务器地址")
     private String host;
@@ -18,12 +18,12 @@ public class FlowQueryVO {
     @ApiModelProperty(value = "代理服务器端口", example = "0")
     private Integer port;
 
-    @ApiModelProperty(value = "流量开始时间（包含）")
+    @ApiModelProperty(value = "流量汇总开始时间（包含）")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startTime;
 
-    @ApiModelProperty(value = "流量结束时间（不包含）")
+    @ApiModelProperty(value = "流量汇总结束时间（不包含）")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endTime;

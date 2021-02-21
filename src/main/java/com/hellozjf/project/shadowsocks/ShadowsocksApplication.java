@@ -10,10 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @MapperScan("com.hellozjf.project.shadowsocks.dao.mapper")
 @Import(cn.hutool.extra.spring.SpringUtil.class)
+@EnableScheduling
 public class ShadowsocksApplication {
 
 	public static void main(String[] args) {

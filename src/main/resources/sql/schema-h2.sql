@@ -37,4 +37,5 @@ CREATE TABLE flow_sum
 	download_size INT NOT NULL COMMENT '下载流量大小',
 	upload_size INT NOT NULL COMMENT '上传流量大小',
 	PRIMARY KEY (id)
-)
+);
+CREATE INDEX index_flow_sum ON flow_sum(host, port, create_time);
