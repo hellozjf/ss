@@ -15,12 +15,14 @@ import com.hellozjf.project.shadowsocks.vo.FlowQueryVO;
 import com.hellozjf.project.shadowsocks.vo.FlowVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
 
+@Profile("!unittest")
 @Slf4j
 @Component
 public class FlowSumTask {
