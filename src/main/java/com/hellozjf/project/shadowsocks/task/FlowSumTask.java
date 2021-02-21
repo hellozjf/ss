@@ -37,16 +37,16 @@ public class FlowSumTask {
     private SSConfig ssConfig;
 
     /**
-     * 每十秒钟进行一次流量汇总
+     * 每分钟进行一次流量汇总
      */
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(cron = "0 * * * * ?")
     public void doSum() {
 
         DateTime nowTime = DateTime.now();
         DateTime startTime = nowTime
-                .setField(DateField.SECOND, nowTime.getField(DateField.SECOND) / 10 * 10)
+                .setField(DateField.SECOND, 0)
                 .setField(DateField.MILLISECOND, 0);
-        DateTime endTime = DateUtil.offset(startTime, DateField.SECOND, 10);
+        DateTime endTime = DateUtil.offset(startTime, DateField.MINUTE, 1);
 
         List<User> userList = userService.list();
         for (User user : userList) {
