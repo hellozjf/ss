@@ -2,6 +2,7 @@ package com.hellozjf.project.shadowsocks.service;
 
 import com.hellozjf.project.shadowsocks.handler.ClientInHandler;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
 /**
  * netty服务
@@ -25,8 +26,9 @@ public interface NettyService {
     /**
      * 删除端口
      * @param port
+     * @return
      */
-    void deletePort(int port);
+    ChannelFuture deletePort(int port);
 
     /**
      * 连接目标服务器

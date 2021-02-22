@@ -10,20 +10,30 @@ import com.hellozjf.project.shadowsocks.constant.UserTypeConstant;
 import com.hellozjf.project.shadowsocks.dao.entity.FlowLimit;
 import com.hellozjf.project.shadowsocks.dao.mapper.FlowLimitMapper;
 import com.hellozjf.project.shadowsocks.service.FlowLimitService;
-import com.hellozjf.project.shadowsocks.vo.FlowLimitAddVO;
-import com.hellozjf.project.shadowsocks.vo.FlowLimitFinishVO;
-import com.hellozjf.project.shadowsocks.vo.FlowLimitQueryVO;
-import com.hellozjf.project.shadowsocks.vo.FlowLimitVO;
+import com.hellozjf.project.shadowsocks.service.NettyService;
+import com.hellozjf.project.shadowsocks.service.UserService;
+import com.hellozjf.project.shadowsocks.vo.*;
+import io.netty.channel.ChannelFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FlowLimitServiceImpl extends ServiceImpl<FlowLimitMapper, FlowLimit>
         implements FlowLimitService {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private NettyService nettyService;
 
     @Override
     public String getCurrentUserType(String userId) {
@@ -46,16 +56,39 @@ public class FlowLimitServiceImpl extends ServiceImpl<FlowLimitMapper, FlowLimit
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean addFlowLimit(FlowLimitAddVO flowLimitAddVO) {
+
+        String oldUserType = getCurrentUserType(flowLimitAddVO.getUserId());
+
         FlowLimit flowLimit = new FlowLimit();
         BeanUtil.copyProperties(flowLimitAddVO, flowLimit);
         flowLimit.setId(IdUtil.simpleUUID());
         flowLimit.setCreateTime(new Date());
         flowLimit.setUpdateTime(new Date());
-        return save(flowLimit);
+        boolean ret = save(flowLimit);
+
+        String newUserType = getCurrentUserType(flowLimitAddVO.getUserId());
+        if (!oldUserType.equals(newUserType)) {
+            // 需要把ss端口重启一下
+            UserVO userVO = userService.getUser(flowLimitAddVO.getUserId());
+            ChannelFuture channelFuture = nettyService.deletePort(userVO.getPort());
+            try {
+                channelFuture.sync();
+            } catch (InterruptedException e) {
+                log.error("e = {}", e.getMessage());
+            }
+            try {
+                nettyService.createPort(userVO.getPort(), userVO.getPassword(), "aes-256-gcm");
+            } catch (InterruptedException e) {
+                log.error("e = {}", e.getMessage());
+            }
+        }
+        return ret;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean finishFlowLimit(FlowLimitFinishVO flowLimitFinishVO) {
         UpdateWrapper<FlowLimit> updateWrapper = new UpdateWrapper<>();
@@ -75,6 +108,8 @@ public class FlowLimitServiceImpl extends ServiceImpl<FlowLimitMapper, FlowLimit
         List<FlowLimitVO> collect = list.stream().map(flowLimit -> {
             FlowLimitVO flowLimitVO = new FlowLimitVO();
             BeanUtil.copyProperties(flowLimit, flowLimitVO);
+            UserVO user = userService.getUser(flowLimitVO.getUserId());
+            flowLimitVO.setUsername(user.getUsername());
             return flowLimitVO;
         }).collect(Collectors.toList());
         return collect;

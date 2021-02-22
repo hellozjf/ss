@@ -88,11 +88,14 @@ public class NettyServiceImpl implements NettyService {
         // 创建一个流量整形Handler
         UserVO userVO = userService.getUserByPort(port);
         String userType = flowLimitService.getCurrentUserType(userVO.getId());
-        long limit = 1024 * 10;
+        // 普通用户100KB/s
+        long limit = 1024 * 100;
         if (userType.equals(UserTypeConstant.VIP)) {
+            // VIP用户1000KB/s
             limit *= 10;
         } else if (userType.equals(UserTypeConstant.SVIP)) {
-            limit *= 100;
+            // SVIP用户不限速
+            limit = 0;
         }
         GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
                 scheduledExecutorService,
@@ -132,10 +135,12 @@ public class NettyServiceImpl implements NettyService {
     }
 
     @Override
-    public void deletePort(int port) {
+    public ChannelFuture deletePort(int port) {
+        log.info("正在关闭ss端口，port[{}]", port);
         Channel channel = portChannelMap.get(port);
-        channel.close();
+        ChannelFuture channelFuture = channel.close();
         portChannelMap.remove(port);
+        return channelFuture;
     }
 
     @Override
