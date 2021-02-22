@@ -141,3 +141,11 @@ git update-index --assume-unchanged db/ss.trace.db
 - [ ] 实现流量限速功能
 - [ ] 实现更多的加密协议
 - [ ] 实现v2ray协议
+
+## 工作记录
+
+### 2021-02-22
+
+- [ ] 数据库表自动生成
+- [ ] 解决开着shadowsocks-windows后无法打开hk.hellozjf.com:8080/swagger-ui.html页面的问题
+- [ ] 增加用户类型，区分普通用户、VIP、SVIP
