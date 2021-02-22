@@ -20,4 +20,6 @@ public interface UserService extends IService<User> {
     List<UserVO> listAll();
 
     UserVO getUser(String id);
+
+    UserVO getUserByPort(Integer port);
 }

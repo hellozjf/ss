@@ -7,15 +7,17 @@ import cn.hutool.core.util.IdUtil;
 import com.hellozjf.project.shadowsocks.BaseTest;
 import com.hellozjf.project.shadowsocks.constant.UserTypeConstant;
 import com.hellozjf.project.shadowsocks.dao.entity.FlowLimit;
-import io.swagger.annotations.ApiOperation;
+import com.hellozjf.project.shadowsocks.vo.FlowLimitAddVO;
+import com.hellozjf.project.shadowsocks.vo.FlowLimitFinishVO;
+import com.hellozjf.project.shadowsocks.vo.FlowLimitQueryVO;
+import com.hellozjf.project.shadowsocks.vo.FlowLimitVO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Scanner;
 
 @Slf4j
 public class FlowLimitServiceTest extends BaseTest {
@@ -51,7 +53,6 @@ public class FlowLimitServiceTest extends BaseTest {
         log.info("currentUserType = {}", currentUserType);
 
 
-
         flowLimit = new FlowLimit();
         flowLimit.setId(IdUtil.simpleUUID());
         flowLimit.setCreateTime(new Date());
@@ -66,12 +67,39 @@ public class FlowLimitServiceTest extends BaseTest {
         flowLimitService.save(flowLimit);
 
 
-
         List<FlowLimit> list = flowLimitService.list();
         log.info("list = {}", list);
 
         // 再获取一下当前的用户类型
         currentUserType = flowLimitService.getCurrentUserType("1");
         log.info("currentUserType = {}", currentUserType);
+    }
+
+    @Test
+    public void FlowLimitTest() {
+
+        log.info("userType = {}", flowLimitService.getCurrentUserType("1"));
+
+        FlowLimitAddVO flowLimitAddVO = new FlowLimitAddVO();
+        flowLimitAddVO.setUserId("1");
+        flowLimitAddVO.setUserType(UserTypeConstant.SVIP);
+        DateTime validStartTime = DateUtil.parseDateTime("2021-02-22 00:00:00");
+        DateTime validEndTime = DateUtil.parseDateTime("2021-02-23 00:00:00");
+        flowLimitAddVO.setValidStartTime(validStartTime);
+        flowLimitAddVO.setValidEndTime(validEndTime);
+        flowLimitService.addFlowLimit(flowLimitAddVO);
+
+        log.info("userType = {}", flowLimitService.getCurrentUserType("1"));
+
+        FlowLimitQueryVO flowLimitQueryVO = new FlowLimitQueryVO();
+        flowLimitQueryVO.setUserId("1");
+        List<FlowLimitVO> flowLimitVOList = flowLimitService.getAll(flowLimitQueryVO);
+        FlowLimitVO flowLimitVO = flowLimitVOList.get(0);
+
+        FlowLimitFinishVO flowLimitFinishVO = new FlowLimitFinishVO();
+        flowLimitFinishVO.setId(flowLimitVO.getId());
+        flowLimitService.finishFlowLimit(flowLimitFinishVO);
+
+        log.info("userType = {}", flowLimitService.getCurrentUserType("1"));
     }
 }

@@ -6,6 +6,7 @@ import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hellozjf.project.shadowsocks.config.UserPortConfig;
+import com.hellozjf.project.shadowsocks.constant.IsDelConstant;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.dao.mapper.UserMapper;
 import com.hellozjf.project.shadowsocks.exception.ApiException;
@@ -123,6 +124,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return null;
         }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user, userVO);
+        return userVO;
+    }
+
+    @Override
+    public UserVO getUserByPort(Integer port) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("port", port)
+                .eq("is_del", IsDelConstant.UNDEL);
+        User user = getOne(queryWrapper);
+
         UserVO userVO = new UserVO();
         BeanUtil.copyProperties(user, userVO);
         return userVO;

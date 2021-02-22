@@ -1,12 +1,14 @@
 package com.hellozjf.project.shadowsocks.service.impl;
 
 import cn.hutool.core.lang.Snowflake;
-import com.hellozjf.project.shadowsocks.config.SnowflakeConfig;
+import com.hellozjf.project.shadowsocks.constant.UserTypeConstant;
 import com.hellozjf.project.shadowsocks.dao.entity.User;
 import com.hellozjf.project.shadowsocks.handler.*;
 import com.hellozjf.project.shadowsocks.service.CryptService;
+import com.hellozjf.project.shadowsocks.service.FlowLimitService;
 import com.hellozjf.project.shadowsocks.service.NettyService;
 import com.hellozjf.project.shadowsocks.service.UserService;
+import com.hellozjf.project.shadowsocks.vo.UserVO;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -55,6 +57,9 @@ public class NettyServiceImpl implements NettyService {
     @Autowired
     private ScheduledExecutorService scheduledExecutorService;
 
+    @Autowired
+    private FlowLimitService flowLimitService;
+
     private Map<Integer, Channel> portChannelMap = new ConcurrentHashMap<>();
 
     @Override
@@ -81,11 +86,18 @@ public class NettyServiceImpl implements NettyService {
         byte[] key = cryptService.getKey(password);
 
         // 创建一个流量整形Handler
-        // todo 速率需要从数据库中获取
+        UserVO userVO = userService.getUserByPort(port);
+        String userType = flowLimitService.getCurrentUserType(userVO.getId());
+        long limit = 1024 * 10;
+        if (userType.equals(UserTypeConstant.VIP)) {
+            limit *= 10;
+        } else if (userType.equals(UserTypeConstant.SVIP)) {
+            limit *= 100;
+        }
         GlobalTrafficShapingHandler globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
                 scheduledExecutorService,
-                10 * 1024,
-                10 * 1024,
+                limit,
+                limit,
                 1000,
                 Integer.MAX_VALUE
         );

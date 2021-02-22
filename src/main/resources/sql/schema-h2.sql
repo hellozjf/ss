@@ -10,6 +10,7 @@ CREATE TABLE user
     port INT NULL DEFAULT NULL COMMENT '端口',
 	PRIMARY KEY (id)
 );
+CREATE INDEX index_user ON user(port, is_del);
 
 CREATE TABLE flow
 (
