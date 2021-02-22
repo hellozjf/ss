@@ -146,6 +146,6 @@ git update-index --assume-unchanged db/ss.trace.db
 
 ### 2021-02-22
 
-- [ ] 数据库表自动生成
+- [ ] ~~数据库表自动生成~~
 - [ ] 解决开着shadowsocks-windows后无法打开hk.hellozjf.com:8080/swagger-ui.html页面的问题
-- [ ] 增加用户类型，区分普通用户、VIP、SVIP
+- [x] 增加用户类型，区分普通用户、VIP、SVIP
