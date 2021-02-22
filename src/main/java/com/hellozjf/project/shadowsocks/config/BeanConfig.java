@@ -24,6 +24,9 @@ public class BeanConfig {
     @Autowired
     private SnowflakeConfig snowflakeConfig;
 
+    @Autowired
+    private SSConfig ssConfig;
+
     @Bean
     public Snowflake snowflake() {
         return IdUtil.getSnowflake(snowflakeConfig.getWorkerId(), snowflakeConfig.getDatacenterId());
@@ -41,12 +44,12 @@ public class BeanConfig {
 
     @Bean(name = "bossGroup")
     public EventLoopGroup bossGroup() {
-        return new NioEventLoopGroup(1);
+        return new NioEventLoopGroup(ssConfig.getBossThreadNum());
     }
 
     @Bean(name = "workerGroup")
     public EventLoopGroup workerGroup() {
-        return new NioEventLoopGroup(2);
+        return new NioEventLoopGroup(ssConfig.getWorkerThreadNum());
     }
 
     @Bean

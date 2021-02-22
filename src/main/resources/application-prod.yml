@@ -12,3 +12,5 @@ ss:
     min: 10000
     max: 20000
   host: hk.hellozjf.com
+  boss-thread-num: 2
+  worker-thread-num: 2

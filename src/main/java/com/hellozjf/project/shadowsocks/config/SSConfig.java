@@ -11,4 +11,6 @@ public class SSConfig {
     private SnowflakeConfig snowflake;
     private UserPortConfig userPort;
     private String host;
+    private Integer bossThreadNum;
+    private Integer workerThreadNum;
 }
