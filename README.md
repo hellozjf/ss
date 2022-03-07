@@ -6,7 +6,7 @@
 
 
 
-![](https://hellozjf-oss.oss-cn-hangzhou.aliyuncs.com/uploads/2021/2/19/ss架构.jpg)
+![](http://hk.hellozjf.com:9000/uploads/2021/2/19/ss架构.jpg)
 
 1. 浏览器配置好socks5代理，浏览器访问目标服务器的时候，请求就会转发到sslocal
 2. sslocal收到socks5请求，解析出请求对象，将请求对象最前面加上ss头部（见详细说明->ss头部），再生成一个32字节的盐（也称为IV），再用aes-256-gcm进行加密，将盐和加密后的数据一起发送给ssserver
@@ -76,7 +76,7 @@ method决定key的长度，例如aes-256-gcm就是32字节
 
 最后的结构如下所示：
 
-![](https://hellozjf-oss.oss-cn-hangzhou.aliyuncs.com/uploads/2021/2/19/aes-256-gcm加密.jpg)
+![](http://hk.hellozjf.com:9000/uploads/2021/2/19/aes-256-gcm加密.jpg)
 
 **注意：每一次请求只会有一个salt，不管本次请求数据有多长salt都是不会变的。不同的请求salt是不同的。**
 
@@ -100,7 +100,7 @@ ss头部与加密解密无关，因为正常的数据中只有请求数据，而
 
 ss头部格式如下图所示
 
-![](https://hellozjf-oss.oss-cn-hangzhou.aliyuncs.com/uploads/2021/2/19/ss头部.jpg)
+![](http://hk.hellozjf.com:9000/uploads/2021/2/19/ss头部.jpg)
 
 ss头部与正常请求数据结合在一起形成明文，和加密解密中的salt一样，ss头部每次请求也只有一个
 
@@ -108,7 +108,7 @@ ss头部与正常请求数据结合在一起形成明文，和加密解密中的
 
 一图胜万言
 
-![](https://hellozjf-oss.oss-cn-hangzhou.aliyuncs.com/uploads/2021/2/20/ss总结.jpg)
+![](http://hk.hellozjf.com:9000/uploads/2021/2/20/ss总结.jpg)
 
 ## 代码地址
 
